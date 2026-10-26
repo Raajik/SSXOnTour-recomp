@@ -785,6 +785,40 @@ static int find_game_dir(char *tried, size_t tried_size)
 }
 
 
+/* The XBE this program was lifted from: title ID 45410082 and .text (VA
+ * 0x11000, 0x2A0310 bytes) with FNV-1a 64 hash 0xB8FA3A4C454898A5. The
+ * entry point alone would let another build with the same entry through,
+ * and the overrides would then patch the wrong code. FNV is enough to tell
+ * builds apart; it is not a guard against a crafted file. */
+static int xbe_is_this_build(const uint8_t *x, size_t n)
+{
+    uint32_t base, cert, nsec, sec, i;
+    if (n < 0x124)
+        return 0;
+    memcpy(&base, x + 0x104, 4);
+    memcpy(&cert, x + 0x118, 4);
+    memcpy(&nsec, x + 0x11C, 4);
+    memcpy(&sec, x + 0x120, 4);
+    cert -= base;
+    sec -= base;
+    if ((uint64_t)cert + 12 > n || *(const uint32_t *)(x + cert + 8) != 0x45410082u)
+        return 0;
+    for (i = 0; i < nsec && (uint64_t)sec + (i + 1) * 56 <= n; i++) {
+        uint32_t va, raw, size;
+        memcpy(&va, x + sec + i * 56 + 4, 4);
+        memcpy(&raw, x + sec + i * 56 + 12, 4);
+        memcpy(&size, x + sec + i * 56 + 16, 4);
+        if (va == 0x11000u && size == 0x2A0310u && (uint64_t)raw + size <= n) {
+            uint64_t h = 0xCBF29CE484222325ull;
+            uint32_t k;
+            for (k = 0; k < size; k++)
+                h = (h ^ x[raw + k]) * 0x100000001B3ull;
+            return h == 0xB8FA3A4C454898A5ull;
+        }
+    }
+    return 0;
+}
+
 /* ── WinMain ───────────────────────────────────────────────── */
 
 #ifndef _WIN32
@@ -1080,7 +1114,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         uint32_t ent = 0;
         if (xbe_size >= 0x12C)
             memcpy(&ent, (const uint8_t *)xbe_data + 0x128, 4);
-        if ((ent ^ 0xA8FC57ABu) != YOUR_GAME_ENTRY_POINT && (ent ^ 0x94859D4Bu) != YOUR_GAME_ENTRY_POINT) {
+        if (((ent ^ 0xA8FC57ABu) != YOUR_GAME_ENTRY_POINT && (ent ^ 0x94859D4Bu) != YOUR_GAME_ENTRY_POINT)
+                || !xbe_is_this_build((const uint8_t *)xbe_data, xbe_size)) {
             log_msg(LOG_CRITICAL, "SYSTEM", "default.xbe is another build of SSX On Tour than this program (%s)",
                     SSX3_BUILD_NAME);
             MessageBoxA(NULL, "This default.xbe is another build of SSX On Tour than this program was made for ("

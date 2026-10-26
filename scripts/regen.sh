@@ -15,7 +15,14 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TK="${TK:-$(dirname "$HERE")/xboxrecomp-ssxot}"
 PY="${PY:-$TK/.venv/bin/python}"
-XBE="$(realpath "${XBE:-$HERE/game/default.xbe}")"
+XBE="${XBE:-$HERE/game/default.xbe}"
+# The parse step writes default_analysis.json beside the XBE: only ever into
+# this project's own game/ folder, never next to a backup or a link into one.
+if [ -L "$XBE" ] || [ ! -f "$XBE" ] || [ "$(realpath "$(dirname "$XBE")")" != "$(realpath "$HERE/game")" ]; then
+    echo "regen: $XBE must be a real file (a copy, not a link) in $HERE/game/" >&2
+    exit 1
+fi
+XBE="$(realpath "$XBE")"
 ANALYSIS="$(dirname "$XBE")/default_analysis.json"
 # DOLBY is DSP56300 microcode for the audio chip, not x86: never disassemble it.
 SECTIONS=(--text-only --extra-sections D3D,D3DX,XGRPH,DSOUND,XPP)
