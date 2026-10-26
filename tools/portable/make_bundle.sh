@@ -60,7 +60,8 @@ cat > "$DEST/Play and collect textures.sh" <<'EOS'
 # As "Play SSX On Tour.sh", and each texture the game shows for the first time is saved to
 # texdump/, to build the upscaled packs from (tools/upscale_pack.sh in ssxot-recomp).
 here=$(cd "$(dirname "$0")" && pwd)
-RECOMP_TEX_DUMP="$here/texdump" exec "$here/Play SSX On Tour.sh"
+# The trailing slash: the toolkit also reads this as a file-name prefix for its own BMPs.
+RECOMP_TEX_DUMP="$here/texdump/" exec "$here/Play SSX On Tour.sh"
 EOS
 chmod +x "$DEST/Play and collect textures.sh"
 
