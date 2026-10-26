@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build ssx3_recomp and the launcher inside Valve's Steam Runtime 3 "sniper" SDK,
+# Build ssxot_recomp and the launcher inside Valve's Steam Runtime 3 "sniper" SDK,
 # so they need glibc 2.31 and run on SteamOS, Bazzite and most distros since 2021
 # (docs/LINUX.md). Needs podman, a regenerated tree (scripts/regen.sh)
 # and the shaders from a normal build (ninja -C build-linux), reused as SPIR-V.
@@ -8,7 +8,7 @@
 #   tools/portable/build_portable.sh            -> build-portable/
 set -euo pipefail
 TOOLS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HERE="${SSX3_REPO:-$(cd "$TOOLS/../.." && pwd)}"   # SSX3_REPO: run a copy of this script from elsewhere
+HERE="${SSXOT_REPO:-$(cd "$TOOLS/../.." && pwd)}"   # SSXOT_REPO: run a copy of this script from elsewhere
 PARENT="$(dirname "$HERE")"
 IMG=${SNIPER_IMAGE:-registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest}
 SPV="${SPV_DIR:-$HERE/build-portable-spv}"   # from tools/portable/prepare_spv.sh
@@ -23,9 +23,9 @@ podman run --rm -v "$PARENT:$PARENT:z" -v "$SPV:$SPV:ro,z" -v "$TOOLS/glslc-preb
     set -e
     export CC=gcc-14 CXX=g++-14
     cmake -S . -B build-portable -G Ninja -DCMAKE_BUILD_TYPE=Release > build-portable.cmake.log
-    ninja -C build-portable ssx3_recomp launcher
+    ninja -C build-portable ssxot_recomp launcher
 '
-for b in ssx3_recomp launcher; do
+for b in ssxot_recomp launcher; do
     v=$(objdump -T "$HERE/build-portable/$b" | grep -o 'GLIBC_[0-9.]*' | sort -t. -k2,2n -k3,3n -u | tail -1)
     echo "$b needs $v"
 done

@@ -10,8 +10,9 @@
  *    reads neither RECOMP_FULLSCREEN nor RECOMP_FPS_OVERLAY, and 5.1 output
  *    is XAudio2 only. Their keys in the ini are kept as they are.
  *  - "Auto" resolution is resolved here from the desktop the launcher is on;
- *    main.c asks the monitor only on Windows. "Auto" aspect ratio is passed
- *    on as "auto": the renderer follows the game window's shape.
+ *    main.c asks the monitor only on Windows.
+ *  - no aspect ratio, draw distance, shadow, HD texture, HUD, fast boot,
+ *    debug menu or money rows: they need SSX 3's game code or packs.
  *  - RECOMP_USB_PADS is set to the number of controllers, as main.c does
  *    from XInput on Windows, so a second controller makes Multi Play.
  *  - the game's output goes to logs/ beside the game folder when the
@@ -42,8 +43,8 @@
 
 extern char **environ;
 
-#define GAME_EXE   "ssx3_recomp"
-#define TITLE_ID   0x4541003Cu      /* SSX 3: PAL and NTSC-U share it (regen picks the build) */
+#define GAME_EXE   "ssxot_recomp"
+#define TITLE_ID   0x45410082u      /* SSX On Tour */
 #define XBE_ENTRY_KEY_RETAIL 0xA8FC57ABu   /* the header's entry point is XORed with one */
 #define XBE_ENTRY_KEY_DEBUG  0x94859D4Bu
 #define WIN_W      560
@@ -58,23 +59,11 @@ static const Choice k_res[] = {
     {"1440p", "1440"},
     {"2160p (4K)", "2160"},
 };
-static const Choice k_aspect[] = {
-    {"Auto (follows the window)", "auto"},
-    {"16:9", "16:9"},
-    {"21:9", "21:9"},
-    {"32:9", "32:9"},
-    {"4:3 (original)", "0"},
-};
 static const Choice k_aniso[] = {
     {"Trilinear", "0"},
     {"4x anisotropic", "4"},
     {"8x anisotropic", "8"},
     {"16x anisotropic (sharpest)", "16"},
-};
-static const Choice k_drawdist[] = {
-    {"Original", "1"},
-    {"Far (1.5x)", "1.5"},
-    {"Maximum (2x)", "2"},
 };
 static const Choice k_loglevel[] = {
     {"Errors only", "error"},
@@ -82,11 +71,6 @@ static const Choice k_loglevel[] = {
     {"Normal (what you did, and problems)", "info"},
     {"Detailed (for bug reports)", "debug"},
     {"Everything (large logs)", "trace"},
-};
-static const Choice k_shadows[] = {
-    {"Original (128x128)", "1"},
-    {"High (512x512)", "4"},
-    {"Ultra (1024x1024)", "8"},
 };
 static const Choice k_pct[] = {
     {"Off (0 %)", "0"},
@@ -188,8 +172,8 @@ static void ini_save(void)
 /* ---- the form's state ---------------------------------------------------- */
 
 static char s_path[PATH_MAX];
-static int s_res, s_aspect, s_msaa, s_aniso, s_drawdist, s_shadows;
-static int s_crt, s_hdtex, s_hudedges, s_skipintro, s_fastboot, s_debugmenu, s_moneycheat;
+static int s_res, s_msaa, s_aniso;
+static int s_crt, s_skipintro;
 static int s_ink, s_ink_color = 4, s_ink_sharpen = 4, s_ink_lines = 4;   /* Ink & Color; k_pct indices */
 static int s_loglevel = 2;
 static int s_game_ok;
@@ -249,7 +233,7 @@ static int check_game(const char *dir, char *msg, size_t n)
     char xbe[PATH_MAX + 16], data[PATH_MAX + 8], name[48];
     unsigned id = 0, entry = 0;
     if (!*dir) {
-        snprintf(msg, n, "Choose the folder of your SSX 3 game files (the one with default.xbe).");
+        snprintf(msg, n, "Choose the folder of your SSX On Tour game files (the one with default.xbe).");
         return 0;
     }
     snprintf(xbe, sizeof xbe, "%s/default.xbe", dir);
@@ -271,13 +255,13 @@ static int check_game(const char *dir, char *msg, size_t n)
         return 0;
     }
     if (id != TITLE_ID) {
-        snprintf(msg, n, "This is %s (title %08X). This build needs SSX 3 (4541003C).",
+        snprintf(msg, n, "This is %s (title %08X). This build needs SSX On Tour (45410082).",
                  *name ? name : "another game", id);
         return 0;
     }
     if ((entry ^ XBE_ENTRY_KEY_RETAIL) != VA(0x001A2C40) && (entry ^ XBE_ENTRY_KEY_DEBUG) != VA(0x001A2C40)) {
-        snprintf(msg, n, "This is another build of SSX 3 than this program was made for (" SSX3_BUILD_NAME
-                 "). Build it from source for your copy: docs/PORTS.md.");
+        snprintf(msg, n, "This is another build of SSX On Tour than this program was made for (" SSX3_BUILD_NAME
+                 "). docs/BRINGUP.md says what a port to it involves.");
         return 0;
     }
     snprintf(msg, n, "Found %s (" SSX3_BUILD_NAME "). Ready to play.", name);
@@ -309,18 +293,10 @@ static void load_settings(void)
         }
     }
     s_res = ini_int("resolution", 0);
-    s_aspect = ini_int("aspect", 0);
     s_msaa = ini_int("msaa", 2);
     s_aniso = ini_int("aniso", 3);
-    s_drawdist = ini_int("draw_distance", 1);
-    s_shadows = ini_int("shadows", 1);
     s_crt = ini_int("crt", 0);
-    s_hdtex = ini_int("hd_textures", 1);
-    s_hudedges = ini_int("hud_edges", 1);
     s_skipintro = ini_int("skip_intro", 1);
-    s_fastboot = ini_int("fast_boot", 1);
-    s_debugmenu = ini_int("debug_menu", 0);
-    s_moneycheat = ini_int("money_cheat", 0);
     s_ink = ini_int("ink", 0);
     s_ink_color = ini_int("ink_color", 4);
     s_ink_sharpen = ini_int("ink_sharpen", 4);
@@ -333,18 +309,10 @@ static void save_settings(void)
 {
     ini_set("game_dir", s_path);
     ini_set_int("resolution", s_res);
-    ini_set_int("aspect", s_aspect);
     ini_set_int("msaa", s_msaa);
     ini_set_int("aniso", s_aniso);
-    ini_set_int("draw_distance", s_drawdist);
-    ini_set_int("shadows", s_shadows);
     ini_set_int("crt", s_crt);
-    ini_set_int("hd_textures", s_hdtex);
-    ini_set_int("hud_edges", s_hudedges);
     ini_set_int("skip_intro", s_skipintro);
-    ini_set_int("fast_boot", s_fastboot);
-    ini_set_int("debug_menu", s_debugmenu);
-    ini_set_int("money_cheat", s_moneycheat);
     ini_set_int("ink", s_ink);
     ini_set_int("ink_color", s_ink_color);
     ini_set_int("ink_sharpen", s_ink_sharpen);
@@ -404,13 +372,13 @@ static void browse(void)
     snprintf(start, sizeof start, "%s/", *s_path ? s_path : getenv("HOME") ? getenv("HOME") : "/");
     {
         char *zen[] = { "zenity", "--file-selection", "--directory",
-                        "--title=Choose the SSX 3 game folder (with default.xbe and data)",
+                        "--title=Choose the SSX On Tour game folder (with default.xbe and data)",
                         "--filename", start, NULL };
         rc = run_capture(zen, out, sizeof out);
     }
     if (rc < 0) {
         char *kd[] = { "kdialog", "--getexistingdirectory", start,
-                       "--title", "Choose the SSX 3 game folder (with default.xbe and data)", NULL };
+                       "--title", "Choose the SSX On Tour game folder (with default.xbe and data)", NULL };
         rc = run_capture(kd, out, sizeof out);
     }
     if (rc < 0) {
@@ -538,24 +506,24 @@ static const char *pick(const Choice *c, int n, int i)
 
 static SDL_Window *s_win;
 /* The window class the launcher gave itself through the environment, which
- * the game must not inherit: its window would then be "ssx3-launcher". */
+ * the game must not inherit: its window would then be "ssxot-launcher". */
 static int s_set_wmclass;
 
 static void message(const char *text)
 {
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "SSX 3", text, s_win);
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "SSX On Tour", text, s_win);
 }
 
 /* Replaces the launcher with the game, which inherits its settings through
  * the environment. Returns only on failure. */
-/* The game's working directory holds hd-textures/, mods/ and keys.ini: the
- * launcher's folder in a release, its parent in the source tree (build-linux/). */
+/* The game's working directory holds game/, mods/ and keys.ini: the bundle's
+ * folder (the launcher is in its bin/), or the source tree (build-linux/'s parent). */
 static void game_cwd(char *out, size_t n)
 {
     char here[PATH_MAX + 16], up[PATH_MAX + 32];
     snprintf(out, n, "%s", s_dir);
-    snprintf(here, sizeof here, "%s/hd-textures", s_dir);
-    snprintf(up, sizeof up, "%s/../hd-textures", s_dir);
+    snprintf(here, sizeof here, "%s/game", s_dir);
+    snprintf(up, sizeof up, "%s/../game", s_dir);
     if (!dir_exists(here) && dir_exists(up))
         snprintf(out, n, "%s/..", s_dir);
 }
@@ -628,25 +596,14 @@ static void play(void)
     } else {
         env_set("RECOMP_RES", NULL);
     }
-    /* "auto", not the monitor's W:H: a fixed shape stops the renderer
-     * following the window, and a game window that is not the monitor's
-     * shape (a tiled one) then showed bars. */
-    env_set("RECOMP_WIDESCREEN", s_aspect > 0 ? pick(k_aspect, N(k_aspect), s_aspect) : "auto");
     env_set("RECOMP_MSAA", pick(k_msaa, N(k_msaa), s_msaa));
     env_set("RECOMP_ANISO", pick(k_aniso, N(k_aniso), s_aniso));
-    env_set("RECOMP_DRAW_DIST", pick(k_drawdist, N(k_drawdist), s_drawdist));
-    env_set("RECOMP_SHADOW_RES", pick(k_shadows, N(k_shadows), s_shadows));
     env_set("RECOMP_CRT", s_crt ? "1" : NULL);
-    env_set("RECOMP_HDTEX", s_hdtex ? NULL : "0");
-    env_set("RECOMP_HUD_EDGES", s_hudedges ? NULL : "0");
     env_set("RECOMP_INK", s_ink ? "1" : NULL);
     env_set("RECOMP_INK_COLOR", s_ink ? pick(k_pct, N(k_pct), s_ink_color) : NULL);
     env_set("RECOMP_INK_SHARPEN", s_ink ? pick(k_pct, N(k_pct), s_ink_sharpen) : NULL);
     env_set("RECOMP_INK_LINES", s_ink ? pick(k_pct, N(k_pct), s_ink_lines) : NULL);
     env_set("RECOMP_SKIP_INTRO", s_skipintro ? "1" : "0");
-    env_set("RECOMP_FAST_BOOT", s_fastboot ? NULL : "0");
-    env_set("RECOMP_DEBUG_MENU", s_debugmenu ? "1" : NULL);
-    env_set("RECOMP_MONEY_CHEAT", s_moneycheat ? "1" : NULL);
     env_set("RECOMP_LOG_LEVEL", pick(k_loglevel, N(k_loglevel), s_loglevel));
     if (!getenv("RECOMP_USB_PADS")) {
         int pads = pad_count();
@@ -665,7 +622,7 @@ static void play(void)
         logs_dir(logs, sizeof logs);
         mkdir(logs, 0755);
         localtime_r(&t, &tm);
-        snprintf(path, sizeof path, "%s/ssx3_%04d%02d%02d-%02d%02d%02d_stderr.txt", logs,
+        snprintf(path, sizeof path, "%s/ssxot_%04d%02d%02d-%02d%02d%02d_stderr.txt", logs,
                  tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
         if ((fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644)) >= 0) {
             dup2(fd, STDERR_FILENO);
@@ -702,7 +659,7 @@ static void open_logs(void)
     char logs[PATH_MAX];
     logs_dir(logs, sizeof logs);
     if (!dir_exists(logs)) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "SSX 3",
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "SSX On Tour",
                                  "No logs yet: they appear after the game has been started "
                                  "from the launcher without a terminal.", s_win);
         return;
@@ -812,7 +769,7 @@ static void check_mark(int x, int y, int size, SDL_Color c)
 /* ---- widgets: immediate mode --------------------------------------------- */
 
 enum {
-    W_NONE, W_PATH, W_RES, W_ASPECT, W_MSAA, W_ANISO, W_DRAWDIST, W_SHADOWS, W_LOGLEVEL,
+    W_NONE, W_PATH, W_RES, W_MSAA, W_ANISO, W_LOGLEVEL,
     W_INK_COLOR, W_INK_SHARPEN, W_INK_LINES
 };
 
@@ -957,8 +914,8 @@ static int draw_form(int *want_play)
     color(C_BG);
     SDL_RenderClear(s_ren);
 
-    text(s_title, "SSX 3", L, y, C_TEXT, 0, 0);
-    text(s_font, "static recompilation for Linux", L + text_w(s_title, "SSX 3") + 12,
+    text(s_title, "SSX On Tour", L, y, C_TEXT, 0, 0);
+    text(s_font, "static recompilation for Linux", L + text_w(s_title, "SSX On Tour") + 12,
          y + font_h(s_title) - font_h(s_font) - 4, C_DIM, 0, 0);
     y += font_h(s_title) + 14;
 
@@ -982,26 +939,13 @@ static int draw_form(int *want_play)
     row_label("Resolution", L, y, RH);
     combo(W_RES, CX, y, CW, RH, res, N(res), &s_res);
     y += RH + 6;
-    row_label("Aspect ratio", L, y, RH);
-    combo(W_ASPECT, CX, y, CW, RH, k_aspect, N(k_aspect), &s_aspect);
-    y += RH + 6;
     row_label("Anti-aliasing", L, y, RH);
     combo(W_MSAA, CX, y, CW, RH, k_msaa, N(k_msaa), &s_msaa);
     y += RH + 6;
     row_label("Texture filtering", L, y, RH);
     combo(W_ANISO, CX, y, CW, RH, k_aniso, N(k_aniso), &s_aniso);
-    y += RH + 6;
-    row_label("Draw distance", L, y, RH);
-    combo(W_DRAWDIST, CX, y, CW, RH, k_drawdist, N(k_drawdist), &s_drawdist);
-    y += RH + 6;
-    row_label("Shadow quality", L, y, RH);
-    combo(W_SHADOWS, CX, y, CW, RH, k_shadows, N(k_shadows), &s_shadows);
     y += RH + 10;
     checkbox(L, y, 440, "CRT TV shader (needs a resolution above 480p)", &s_crt);
-    y += 24;
-    checkbox(L, y, 440, "HD textures (Bl4ckH4nd's HD texture pack)", &s_hdtex);
-    y += 24;
-    checkbox(L, y, 440, "HUD at the screen edges (widescreen)", &s_hudedges);
     y += 24;
     checkbox(L, y, 520, "Ink & Color: richer colours and black ink outlines (3D world only)", &s_ink);
     y += 28;
@@ -1021,13 +965,6 @@ static int draw_form(int *want_play)
     heading("Game", L, y);
     y += 26;
     checkbox(L, y, 440, "Skip the intro movies", &s_skipintro);
-    y += 24;
-    checkbox(L, y, 480, "Fast boot (shorter title and hard-disk-check waits)", &s_fastboot);
-    y += 24;
-    checkbox(L, y, 520,
-             "Debug mode: EA's quick-start menu (press Start on the title screen)", &s_debugmenu);
-    y += 24;
-    checkbox(L, y, 520, "Testing: Home key gives player 1 200,000 money", &s_moneycheat);
     y += 28;
     row_label("Log detail", L, y, RH);
     combo(W_LOGLEVEL, CX, y, CW, RH, k_loglevel, N(k_loglevel), &s_loglevel);
@@ -1070,7 +1007,7 @@ static int draw_form(int *want_play)
     for (i = 0; i < 4; i++, y += 21)
         text(s_font, s_pads[i], L, y, C_TEXT, WIN_W - 2 * L, 0);
     y += 2;
-    y += text(s_font, "Plug in controllers before pressing Play; two or more enable Multi Play. "
+    y += text(s_font, "Plug in controllers before pressing Play. "
                       "The keyboard always works as player 1 (keys.ini).",
               L, y, C_DIM, 0, WIN_W - 2 * L);
     y += 14;
@@ -1162,7 +1099,7 @@ int main(int argc, char **argv)
         update_status();
         if (!s_game_ok) {
             fprintf(stderr, "launcher: %s\n", s_status);
-            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "SSX 3", s_status, NULL);
+            SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "SSX On Tour", s_status, NULL);
             return 1;
         }
         play();                         /* returns only if the game could not start */
@@ -1170,8 +1107,8 @@ int main(int argc, char **argv)
     }
 
     if (!getenv("SDL_VIDEO_WAYLAND_WMCLASS") && !getenv("SDL_VIDEO_X11_WMCLASS")) {
-        setenv("SDL_VIDEO_WAYLAND_WMCLASS", "ssx3-launcher", 1);
-        setenv("SDL_VIDEO_X11_WMCLASS", "ssx3-launcher", 1);
+        setenv("SDL_VIDEO_WAYLAND_WMCLASS", "ssxot-launcher", 1);
+        setenv("SDL_VIDEO_X11_WMCLASS", "ssxot-launcher", 1);
         s_set_wmclass = 1;
     }
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0) {
@@ -1182,7 +1119,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "launcher: font setup failed: %s\n", TTF_GetError());
         return 1;
     }
-    s_win = SDL_CreateWindow("SSX 3 Launcher", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+    s_win = SDL_CreateWindow("SSX On Tour Launcher", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                              WIN_W, height, SDL_WINDOW_HIDDEN | SDL_WINDOW_ALLOW_HIGHDPI);
     s_ren = s_win ? SDL_CreateRenderer(s_win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC) : NULL;
     if (!s_ren && s_win)

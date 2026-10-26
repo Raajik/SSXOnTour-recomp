@@ -11,10 +11,10 @@
 set -e
 B=${1:?build dir}; OUT=${2:?out dir}
 rm -rf "$OUT" && mkdir -p "$OUT/bin" "$OUT/lib"
-cp "$B/ssx3_recomp" "$B/launcher" "$OUT/bin/"
+cp "$B/ssxot_recomp" "$B/launcher" "$OUT/bin/"
 sdl3=/usr/lib/x86_64-linux-gnu/libSDL3.so.0
 [ -e "$sdl3" ] || { echo "no $sdl3 in this image: sdl2-compat would find no SDL3 on the player's machine" >&2; exit 1; }
-{ ldd "$OUT/bin/ssx3_recomp" "$OUT/bin/launcher"; echo " x => $sdl3 (0)"; ldd "$sdl3"; } \
+{ ldd "$OUT/bin/ssxot_recomp" "$OUT/bin/launcher"; echo " x => $sdl3 (0)"; ldd "$sdl3"; } \
     | awk '/=> \//{print $3}' | sort -u | while read so; do
     case $(basename "$so") in
         libc.so*|libm.so*|libpthread.so*|libdl.so*|librt.so*|ld-linux*|libresolv.so*|libutil.so*) ;;
