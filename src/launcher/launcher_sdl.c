@@ -219,8 +219,16 @@ static int read_xbe(const char *path, unsigned *title_id, unsigned *entry, char 
         /* the UTF-16 title name as UTF-8 ("SSX\u2122 On Tour") */
         size_t o = 0;
         for (i = 0; i < 40; i++) {
-            unsigned c = (unsigned)(cert[0xC + i * 2] | cert[0xD + i * 2] << 8);
-            int len = c < 0x80 ? 1 : c < 0x800 ? 2 : 3;
+            unsigned c = (unsigned)(cert[0xC + i * 2] | cert[0xD + i * 2] << 8), lo;
+            int len;
+            if (c >= 0xD800 && c < 0xDC00 && i + 1 < 40
+                && (lo = (unsigned)(cert[0xE + i * 2] | cert[0xF + i * 2] << 8)) >= 0xDC00 && lo < 0xE000) {
+                c = 0x10000 + ((c - 0xD800) << 10) + (lo - 0xDC00);   /* a surrogate pair */
+                i++;
+            } else if (c >= 0xD800 && c < 0xE000) {
+                c = 0xFFFD;                                           /* a lone half */
+            }
+            len = c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
             if (!c || o + (size_t)len >= name_size)
                 break;
             if (len == 1) {
@@ -228,8 +236,13 @@ static int read_xbe(const char *path, unsigned *title_id, unsigned *entry, char 
             } else if (len == 2) {
                 name[o++] = (char)(0xC0 | c >> 6);
                 name[o++] = (char)(0x80 | (c & 0x3F));
-            } else {
+            } else if (len == 3) {
                 name[o++] = (char)(0xE0 | c >> 12);
+                name[o++] = (char)(0x80 | ((c >> 6) & 0x3F));
+                name[o++] = (char)(0x80 | (c & 0x3F));
+            } else {
+                name[o++] = (char)(0xF0 | c >> 18);
+                name[o++] = (char)(0x80 | ((c >> 12) & 0x3F));
                 name[o++] = (char)(0x80 | ((c >> 6) & 0x3F));
                 name[o++] = (char)(0x80 | (c & 0x3F));
             }
@@ -244,7 +257,7 @@ static int read_xbe(const char *path, unsigned *title_id, unsigned *entry, char 
  * are tried. */
 static int check_game(const char *dir, char *msg, size_t n)
 {
-    char xbe[PATH_MAX + 16], data[PATH_MAX + 8], name[48];
+    char xbe[PATH_MAX + 16], data[PATH_MAX + 8], name[164];   /* 40 UTF-16 units as UTF-8 */
     unsigned id = 0, entry = 0;
     if (!*dir) {
         snprintf(msg, n, "Choose the folder of your SSX On Tour game files (the one with default.xbe).");
@@ -827,7 +840,7 @@ static void checkbox(int x, int y, int w, const char *label, int *val)
         fill(x, y + 3, 16, 16, hot ? C_HOVER : C_BG);
         frame(x, y + 3, 16, 16, C_BORDER);
     }
-    text(s_font, label, x + 24, y + (22 - font_h(s_font)) / 2, C_TEXT, -(w - 32), 0);
+    text(s_font, label, x + 24, y + (22 - font_h(s_font)) / 2, C_TEXT, -(w - 24), 0);
     if (hot && s_click)
         *val = !*val;
 }
