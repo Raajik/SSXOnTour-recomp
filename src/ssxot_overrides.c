@@ -125,3 +125,70 @@ void sub_002C2730(void)
     sub_002C2730_gen();
     xbox_Nv2aSwmHandled();
 }
+
+/*
+ * EA file layer, archive open (RECOMP_FS_TRACE=1): sub_00221F4C(path, ?,
+ * &out) is thiscall (this = the file system), ret 0xC. It strips "D:\",
+ * splits "archive|member" at '|', walks the mounted archives (list at
+ * this+0x30: +0 next, +8 archive, +0xC name; names compared with strcmp)
+ * and asks sub_0021E575(archive, member, 0, &offset, &size) for the
+ * member. Returns the open file's index, or -1, and then the caller asks
+ * the OS for the whole "archive|member" path, which fails.
+ */
+extern void sub_00221F4C_gen(void);
+
+static int fs_trace_on(void)
+{
+    static int on = -1;
+    if (on < 0)
+        on = getenv("RECOMP_FS_TRACE") != NULL;
+    return on;
+}
+
+static void guest_str(uint32_t va, char *out, size_t n)
+{
+    size_t i;
+    for (i = 0; i + 1 < n && va >= 0x10000u && va < 0x84000000u; i++) {
+        uint8_t c = MEM8(va + i);
+        if (!c)
+            break;
+        out[i] = c >= 32 && c < 127 ? (char)c : '.';
+    }
+    out[i] = 0;
+}
+
+void sub_00221F4C(void)
+{
+    uint32_t self = g_ecx, path = MEM32(g_esp + 4);
+    char p[160];
+    if (fs_trace_on()) {
+        uint32_t e;
+        int k = 0;
+        guest_str(path, p, sizeof p);
+        fprintf(stderr, "[FS] open \"%s\" this %08X mounts:", p, self);
+        for (e = MEM32(self + 0x30); e >= 0x10000u && e < 0x84000000u && k < 16; e = MEM32(e), k++) {
+            char nm[64];
+            guest_str(e + 0xC, nm, sizeof nm);
+            fprintf(stderr, " [%s arc %08X]", nm, MEM32(e + 8));
+        }
+        fprintf(stderr, "\n");
+    }
+    sub_00221F4C_gen();
+    if (fs_trace_on())
+        fprintf(stderr, "[FS]   -> %d\n", (int)g_eax);
+}
+
+/* The member lookup the open above uses, cdecl (archive, member, flags,
+ * &offset, &size); nonzero when found. */
+extern void sub_0021E575_gen(void);
+
+void sub_0021E575(void)
+{
+    uint32_t arc = MEM32(g_esp + 4), member = MEM32(g_esp + 8);
+    char m[160];
+    if (fs_trace_on())
+        guest_str(member, m, sizeof m);
+    sub_0021E575_gen();
+    if (fs_trace_on())
+        fprintf(stderr, "[FS]   lookup arc %08X \"%s\" -> %d\n", arc, m, (int)g_eax);
+}
