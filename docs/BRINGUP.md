@@ -46,10 +46,10 @@ build or another game. Each fact says how it is known: **Verified** (checked by 
 | Music is noise | voices played at 48 kHz whatever their pitch (upstream 148431d); DirectSound turns the APU setup engine off and on about every 10 ms, a microsecond window on the console that takes 5-10 ms here, and the frame thread emitted silence through it | resampler backport; an off window under 50 ms counts as running; upstream 7fe4d49 | Verified (recorded output; the player confirmed) |
 
 Ink & Color (`RECOMP_INK`, the scene pass inherited from SSX 3) needs the frame's camera, fitted from the terrain's
-vertex program. This game's terrain is `BF72911C` (about 130 draws a frame, all giving one camera); it is the
-default for `RECOMP_SCENE_VSH`. `C4F7A68E` looks plausible but draws objects with their own model matrices: each draw
+vertex program. This game's terrain is `BF72911C`: drawn in every race frame, all its draws giving one camera; it
+is the default for `RECOMP_SCENE_VSH`. `C4F7A68E` looks plausible but draws objects with their own model matrices: each draw
 gives a different camera, and the ink lines came and went. Verified with `RECOMP_CAMFIT_TRACE=1` and
-`tools/camfit_score.py` in a headless race (511 frames, every draw agreeing, no jumps), and screenshots with Ink on.
+`tools/camfit_score.py` in a headless race (other programs agree too, but appear in fewer frames), and screenshots with Ink on.
 
 `RECOMP_SKIP_INTRO` (default on) skips the EA logo and intro movie through `RECOMP_EMPTY_FILES`, which serves
 matching game files as empty (`tests/kernel_mods`). Verified.

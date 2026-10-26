@@ -1381,8 +1381,8 @@ static void spike_init(void)
  * units z, clip w -- measured by running the program on the CPU at the
  * origin and the three unit points: (x w, y w, z w, w) is linear in the world
  * position, so four runs give the 4x4 matrix. Taken from the first draw of a
- * terrain program (RECOMP_SCENE_VSH; default BF72911C, SSX On Tour's slopes,
- * about 90 draws a frame that all give the same camera; SSX 3's was E4F2B8D0)
+ * terrain program (RECOMP_SCENE_VSH; default BF72911C, SSX On Tour's slopes:
+ * in every race frame, its draws all giving one camera; SSX 3's was E4F2B8D0)
  * each frame; frames without one (menus) get no scene pass. C4F7A68E is not
  * one: it draws objects with their own model matrices. */
 static struct {
@@ -2022,10 +2022,10 @@ static int be_draw_vsh(const Nv2aTarget *t, uint32_t prim, const float *in, uint
              * game's terrain program (tools/camfit_score.py ranks them) */
             static int tr = -1;
             double fm[4][4], fe[3];
-            if (tr < 0) tr = getenv("RECOMP_CAMFIT_TRACE") != NULL;
-            if (tr && cam_fit(in, p, fm, fe))
-                fprintf(stderr, "[CAMFIT] f %u prog %08X eye %.1f %.1f %.1f\n",
-                        s_spike_frame, p->hash, fe[0], fe[1], fe[2]);
+            if (tr < 0) { const char *e = getenv("RECOMP_CAMFIT_TRACE"); tr = e && *e && *e != '0'; }
+            if (tr && cam_fit(in, p, fm, fe))   /* the draw number keeps each line distinct for the log */
+                fprintf(stderr, "[CAMFIT] f %u d %u prog %08X eye %.1f %.1f %.1f\n",
+                        s_spike_frame, s_draw_no, p->hash, fe[0], fe[1], fe[2]);
         }
         {
             static int no_shadow = -1;
