@@ -25,7 +25,7 @@ SSX3-recomp have not been tried with this game.
 ## Build and play
 
 ```bash
-git clone <this repository> ssxot-recomp && cd ssxot-recomp
+git clone https://github.com/Raajik/SSXOnTour-recomp.git ssxot-recomp && cd ssxot-recomp
 scripts/linux-setup.sh /path/to/your/rip      # checks packages and the disc, lifts (~5 min) and builds
 tools/play.sh                                  # or build-linux/launcher for the settings window
 ```
@@ -42,7 +42,9 @@ movies are skipped; `RECOMP_SKIP_INTRO=0 tools/play.sh` plays them.
 
 [docs/BRINGUP.md](docs/BRINGUP.md) lists every problem found on the way (memory layout, GPU, timers, USB, audio),
 its cause and its fix, and the tools that found them. The toolkit fixes are in `patches/xboxrecomp-local.patch`;
-the ones xboxrecomp does not have yet are being offered upstream.
+the ones xboxrecomp does not have yet are offered upstream
+([#265](https://github.com/sp00nznet/xboxrecomp/pull/265) timers,
+[#266](https://github.com/sp00nznet/xboxrecomp/pull/266) audio).
 
 ## Credits
 
