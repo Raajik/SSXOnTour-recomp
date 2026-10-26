@@ -778,5 +778,10 @@
   "start": "0x002B12BF",
   "observed": false,
   "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000AF4B0",
+  "observed": true,
+  "note": "Indirect-call target observed at runtime; decodes as a function body."
  }
 ]
