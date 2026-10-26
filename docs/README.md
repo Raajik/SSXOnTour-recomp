@@ -1,11 +1,10 @@
 # docs
 
-Inherited from SSX3-recomp when this project was copied from it (2026-10-25). The toolkit and renderer parts
-still apply; game addresses, settings and test steps describe SSX 3, not SSX On Tour. Facts about SSX On Tour
-are in `~/specs/ssxot-recomp.md` until they move here.
-
-- `LINUX.md`: building and running on Linux, Fedora packages. Applies.
-- `LOGGING.md`: the session log and its settings. Applies.
-- `VULKAN.html`: the Vulkan renderer. Applies.
-- `MODS.md`: asset mods and texture packs. Mostly applies (SSX 3 examples).
-- `MODERNIZE.md`, `ROADMAP.md`, `WEB.md`, `PLAYER-README.txt`: SSX 3's plans and player notes. SSX 3 only.
+- `BRINGUP.md`: how SSX On Tour was brought up: the disc, the addresses, every problem found and its fix, and the
+  tools that found them. Start here to port another build or another game.
+- `LINUX.md`: building and running on Linux, packages per distribution, the one-folder bundle. Inherited from
+  SSX3-recomp; the steps apply, examples may name SSX 3.
+- `LOGGING.md`: the session log and its settings. Inherited; applies.
+- `MODS.md`: asset mods and texture packs. Inherited; applies, with SSX 3 examples.
+- `VULKAN.html`: the Vulkan renderer. Inherited; applies.
+- `WEB.md`: the WebAssembly build. Inherited from SSX3-recomp and not tried with this game.

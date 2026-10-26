@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# From your own SSX 3 rip to a playable Linux build, in one command:
+# From your own SSX On Tour rip to a playable Linux build, in one command:
 #
 #   scripts/linux-setup.sh <rip folder | disc image .iso>
 #
@@ -8,9 +8,8 @@
 # 2. puts the game in game/: from a folder, default.xbe is copied and the rest
 #    linked (regen writes beside the XBE, never into your rip); an ISO is
 #    extracted (extract-xiso or xdvdfs),
-# 3. checks default.xbe is SSX 3,
-# 4. fetches the HD texture pack (Git LFS), then runs scripts/setup.sh,
-#    scripts/regen.sh and the CMake/Ninja build.
+# 3. checks default.xbe is SSX On Tour, the build this project was made for,
+# 4. runs scripts/setup.sh, scripts/regen.sh and the CMake/Ninja build.
 #
 # Safe to re-run: an existing game/ is kept, setup.sh skips what is done.
 set -euo pipefail
@@ -25,7 +24,7 @@ SRC="$(realpath "$SRC")"
 
 # ── 1. dependencies ─────────────────────────────────────────────────────
 missing=()
-for c in git git-lfs python3 cmake ninja cc glslc pkg-config; do
+for c in git python3 cmake ninja cc glslc pkg-config; do
     command -v "$c" >/dev/null || missing+=("$c")
 done
 if command -v pkg-config >/dev/null; then
@@ -41,13 +40,13 @@ if [ ${#missing[@]} -gt 0 ]; then
     id=$(. /etc/os-release 2>/dev/null && echo "${ID:-} ${ID_LIKE:-}")
     case " $id " in
         *" fedora "*|*" rhel "*)
-            echo "  sudo dnf install gcc gcc-c++ cmake ninja-build git git-lfs python3 sdl2-compat-devel SDL2_ttf-devel \\" >&2
+            echo "  sudo dnf install gcc gcc-c++ cmake ninja-build git python3 sdl2-compat-devel SDL2_ttf-devel \\" >&2
             echo "      fontconfig-devel libepoxy-devel openssl-devel vulkan-headers vulkan-loader-devel glslc" >&2 ;;
         *" arch "*)
-            echo "  sudo pacman -S --needed base-devel cmake ninja git git-lfs python sdl2 sdl2_ttf fontconfig libepoxy \\" >&2
+            echo "  sudo pacman -S --needed base-devel cmake ninja git python sdl2 sdl2_ttf fontconfig libepoxy \\" >&2
             echo "      openssl vulkan-headers vulkan-icd-loader shaderc" >&2 ;;
         *" debian "*|*" ubuntu "*)
-            echo "  sudo apt-get install build-essential cmake ninja-build git git-lfs python3 pkg-config libsdl2-dev \\" >&2
+            echo "  sudo apt-get install build-essential cmake ninja-build git python3 pkg-config libsdl2-dev \\" >&2
             echo "      libsdl2-ttf-dev libfontconfig-dev libepoxy-dev libssl-dev libvulkan-dev glslc" >&2 ;;
         *)
             echo "  a C toolchain, cmake, ninja, pkg-config, SDL2, SDL2_ttf, fontconfig, libepoxy, OpenSSL," >&2
@@ -66,17 +65,22 @@ elif [ -e "$GAME/default.xbe" ] || [ -e "$GAME/DEFAULT.XBE" ]; then
 elif [ -d "$SRC" ]; then
     xbe=default.xbe
     [ -e "$SRC/$xbe" ] || xbe=DEFAULT.XBE
+    # A softmodded console patches header bytes of default.xbe and keeps the
+    # original beside it: use the original.
+    orig=""
+    [ -e "$SRC/default.xbe_orig" ] && orig="$SRC/default.xbe_orig"
     [ -e "$SRC/$xbe" ] || {
         echo "$SRC has no default.xbe: pick the folder that holds default.xbe and data/" >&2; exit 1; }
     [ -e "$GAME" ] && { echo "game/ exists but has no default.xbe: move it away first" >&2; exit 1; }
     # The XBE is copied (3 MB) because regen writes its analysis beside it; the
     # rest (2 GB of data/) is linked, so your rip is read, never written.
     mkdir "$GAME"
-    cp "$SRC/$xbe" "$GAME/$xbe"
+    cp "${orig:-$SRC/$xbe}" "$GAME/$xbe"
     for f in "$SRC"/*; do
-        [ "$(basename "$f")" = "$xbe" ] || ln -s "$f" "$GAME/$(basename "$f")"
+        case "$(basename "$f")" in "$xbe"|default.xbe_orig) continue ;; esac
+        ln -s "$f" "$GAME/$(basename "$f")"
     done
-    echo "game/: $xbe copied, the rest linked from $SRC"
+    echo "game/: ${orig:+default.xbe_orig as }$xbe copied, the rest linked from $SRC"
 else
     mkdir -p "$GAME"
     if command -v extract-xiso >/dev/null; then
@@ -92,8 +96,8 @@ fi
 XBE="$GAME/default.xbe"
 [ -e "$XBE" ] || XBE="$GAME/DEFAULT.XBE"
 
-# ── 3. is it SSX 3? ─────────────────────────────────────────────────────
-python3 -I - "$XBE" <<'EOF'
+# ── 3. is it this build of SSX On Tour? ─────────────────────────────────
+python3 -I - "$XBE" <<'EOF2'
 import struct, sys
 d = open(sys.argv[1], "rb").read()
 if d[:4] != b"XBEH":
@@ -101,21 +105,22 @@ if d[:4] != b"XBEH":
 base, cert = struct.unpack_from("<I", d, 0x104)[0], struct.unpack_from("<I", d, 0x118)[0]
 tid = struct.unpack_from("<I", d, cert - base + 8)[0]
 name = d[cert - base + 0xC:cert - base + 0xC + 80].decode("utf-16-le", "replace").split("\0")[0]
-if tid != 0x4541003C:
-    sys.exit(f"this is {name or 'another game'} (title {tid:08X}), not SSX 3 (4541003C)")
-print(f"default.xbe: {name}, title {tid:08X}")
-EOF
+if tid != 0x45410082:
+    sys.exit(f"this is {name or 'another game'} (title {tid:08X}), not SSX On Tour (45410082)")
+n, at = struct.unpack_from("<II", d, 0x11C)
+for i in range(n):
+    _, va, _, raw, size, _ = struct.unpack_from("<IIIIII", d, at - base + i * 56)
+    if va == 0x11000:
+        h = 0xCBF29CE484222325
+        for b in d[raw:raw + size]:
+            h = ((h ^ b) * 0x100000001B3) & 0xFFFFFFFFFFFFFFFF
+        if size != 0x2A0310 or h != 0xB8FA3A4C454898A5:
+            sys.exit("this is another build of SSX On Tour than the NTSC-U disc this project was made for "
+                     "(docs/BRINGUP.md says how to find the addresses for another build)")
+print(f"default.xbe: {name}, title {tid:08X}, NTSC-U build")
+EOF2
 
-# ── 4. toolkit, HD textures, lift, build ─────────────────────────────────
-# hd-textures/ is in Git LFS: a clone without it holds pointer files. --skip-repo
-# sets the LFS filter for this clone only and leaves git hooks alone.
-# Listed into a variable first: grep -q stops at the first match, and under pipefail the
-# writer's broken pipe would make the test false and skip the pull.
-lfs_files=$(git -C "$HERE" lfs ls-files)
-if grep -q " - hd-textures/" <<<"$lfs_files"; then   # "-": not fetched yet
-    git -C "$HERE" lfs install --local --skip-repo
-    git -C "$HERE" lfs pull --include "hd-textures/**"
-fi
+# ── 4. toolkit, lift, build ─────────────────────────────────
 "$HERE/scripts/setup.sh"
 XBE="$XBE" "$HERE/scripts/regen.sh"
 cmake -S "$HERE" -B "$HERE/build-linux" -G Ninja -DCMAKE_BUILD_TYPE=Release

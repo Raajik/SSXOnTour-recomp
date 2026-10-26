@@ -1,41 +1,57 @@
-# SSX On Tour (Xbox) — static recompilation for Linux
+# SSX On Tour (Xbox) for Linux, by static recompilation
 
-Runs SSX On Tour (NTSC-U, title ID `45410082`, XDK 5849) from your own Xbox disc rip as a native Linux program,
-with [sp00nznet/xboxrecomp](https://github.com/sp00nznet/xboxrecomp). The runtime around the game (Vulkan
-renderer for the NV2A, launcher, logging) comes from
-[koenhendriks/SSX3-recomp](https://github.com/koenhendriks/SSX3-recomp); the game-specific code is new.
+Play SSX On Tour from your own Xbox disc as a native Linux program: no emulator. The game's x86 code
+(`default.xbe`) is lifted to C on your machine with [sp00nznet/xboxrecomp](https://github.com/sp00nznet/xboxrecomp),
+then built with the runtime from [koenhendriks/SSX3-recomp](https://github.com/koenhendriks/SSX3-recomp): the
+Xbox kernel and libraries, audio, input, and a Vulkan renderer for the Xbox GPU.
 
-This repo holds no game code or data. `scripts/regen.sh` lifts your own `default.xbe` to C locally.
+**This repository contains no game code or data.** You need your own copy of the game. The lifted C, the build
+and your game files stay on your machine; please don't share them.
 
-## Status (2026-10-25)
+## Status
 
-Boots to the title screen, menus, Quick Play races at 30 FPS, sound, pad and keyboard, saving and loading
-options. Not yet play-tested by a person. Spec and findings: `~/specs/ssxot-recomp.md` (on the author's machines).
+Tested on Fedora 44 (AMD RX 6800 XT, RADV): boot, menus, The Tour and Quick Play races, controller and keyboard,
+music and sound, saving and loading. Linux x86-64 only so far. The Windows and WebAssembly builds inherited from
+SSX3-recomp have not been tried with this game.
 
-## Build (Fedora 44)
+## What you need
+
+- SSX On Tour for Xbox, **NTSC-U** (title ID `45410082`), copied off the disc: `default.xbe` and `data/`. Another
+  region or build has other code addresses and will be refused; [docs/BRINGUP.md](docs/BRINGUP.md) explains
+  what a port to it involves. If your copy came from a softmodded console and has a `default.xbe_orig`, that is
+  the untouched file and the setup script uses it.
+- Build tools, SDL2, Vulkan headers and glslc. The setup script lists the packages for your distribution.
+
+## Build and play
 
 ```bash
-scripts/setup.sh                       # toolkit in ../xboxrecomp-ssxot at the pinned base + patches/xboxrecomp-local.patch
-mkdir -p game && cp <rip>/default.xbe game/ && ln -s <rip>/data game/data   # an untouched default.xbe
-scripts/regen.sh                       # ~5 min: lift the XBE to src/recomp/gen/
-cmake -S . -B build-linux -G Ninja -DCMAKE_BUILD_TYPE=Release
-ninja -C build-linux
-tools/play.sh                          # keyboard: Enter = Start, Z/X/A/S = A/B/X/Y, arrows = d-pad
+git clone <this repository> ssxot-recomp && cd ssxot-recomp
+scripts/linux-setup.sh /path/to/your/rip      # checks packages and the disc, lifts (~5 min) and builds
+tools/play.sh                                  # or build-linux/launcher for the settings window
 ```
 
-Packages: see `docs/LINUX.md`. Saves go to `~/.local/share/xboxrecomp/UDATA/45410082/`.
+By hand, the script does: `scripts/setup.sh` (fetches xboxrecomp at the pinned version into `../xboxrecomp-ssxot`
+and applies `patches/xboxrecomp-local.patch`), copies `default.xbe` into `game/` and links `data/`, runs
+`scripts/regen.sh`, then `cmake -S . -B build-linux -G Ninja -DCMAKE_BUILD_TYPE=Release && ninja -C build-linux`.
 
-## Settings this game needs (defaults in `src/main.c`)
+Saves go to `~/.local/share/xboxrecomp/UDATA/45410082/`. Controls: any SDL game controller, or the keyboard
+(Enter = Start, Z/X/A/S = A/B/X/Y, arrows = d-pad; the full map is at the top of `tools/play.sh`). The intro
+movies are skipped; `RECOMP_SKIP_INTRO=0 tools/play.sh` plays them.
 
-- `RECOMP_HEAP_RECLAIM=1`: EA's heap setup frees and re-allocates a probed contiguous block.
-- `RECOMP_CONTIG_AVOID_IMAGE=1`: keeps contiguous memory out of the image's physical pages (the USB pad).
-- `RECOMP_SKIP_INTRO` (default on): the EA logo and intro movie are skipped through `RECOMP_EMPTY_FILES`.
+## How it was done
 
-## Bring-up tools
+[docs/BRINGUP.md](docs/BRINGUP.md) lists every problem found on the way (memory layout, GPU, timers, USB, audio),
+its cause and its fix, and the tools that found them. The toolkit fixes are in `patches/xboxrecomp-local.patch`;
+the ones xboxrecomp does not have yet are being offered upstream.
 
-- `scripts/seed_loop.sh`: regen, build, headless run, and feed unresolved indirect calls back as seeds.
-- `tools/imm_code_refs.py`: callbacks registered in code (immediates), which the disassembler misses.
-- `tools/match_funcs.py`: find SSX 3's library functions in this XBE by bytes, addresses masked.
-- `RECOMP_FS_TRACE=1`, `RECOMP_SAVE_TRACE=1`: EA archive opens and the save system's natives and results.
+## Credits
 
-`docs/` is inherited from SSX3-recomp (see `docs/README.md`); much of it describes SSX 3.
+- [sp00nznet/xboxrecomp](https://github.com/sp00nznet/xboxrecomp): the recompiler and runtime this rests on.
+- [koenhendriks/SSX3-recomp](https://github.com/koenhendriks/SSX3-recomp) and its contributors: the project this
+  one was copied from, with its renderer, launcher and toolkit work.
+- [xemu](https://github.com/xemu-project/xemu): the reference for the Xbox GPU and audio hardware.
+
+## License
+
+GPL-2.0-or-later, as SSX3-recomp (see [LICENSE](LICENSE)). The xboxrecomp toolkit, fetched separately, is under its
+own licenses (MIT, and LGPL-2.1 for parts from xemu).

@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# Linux counterpart of play.bat: the keyboard is player 1 (merged with any pad,
-# key map in play.bat), output goes to play_stdout.txt / play_stderr.txt.
+# Play: the keyboard is player 1 (merged with any pad); output goes to
+# play_stdout.txt / play_stderr.txt.
 #   tools/play.sh          play
-#   tools/play.sh diag     with the frame, GPU and audio diagnostics play.bat diag sets
+#   tools/play.sh diag     with frame, GPU and audio diagnostics
+# Keyboard (the game window must have focus):
+#   Enter START   Backspace BACK   Z X A S = A B X Y   Q E = white / black
+#   1 3 = left / right trigger   arrows = d-pad   numpad 8/4/2/6 = left stick
+#   I J K L = right stick   Shift / Ctrl = stick clicks   F3 FPS counter
+#   F11 / Alt+Enter fullscreen
 cd "$(dirname "$0")/.." || exit 1
 export RECOMP_KEYBOARD="${RECOMP_KEYBOARD:-1}"
 if [ "${1:-}" = diag ]; then
