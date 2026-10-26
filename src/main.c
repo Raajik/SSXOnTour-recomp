@@ -942,6 +942,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
      *     8, waiting on the streamer, sub_0020Bxxx) or crashed on a garbage
      *     pointer in the world streamer (0x0020D26A). */
     if (!getenv("RECOMP_GUEST_LOCK"))    _putenv_s("RECOMP_GUEST_LOCK", "1");
+    /*   RECOMP_HEAP_RECLAIM: MmFreeContiguousMemory gives blocks back. EA's
+     *     heap setup (sub_001F8820) probes for the largest contiguous block
+     *     from 64 MB down, frees it, then allocates that size less 1.375 MB;
+     *     with the bump-only arena the free kept the block, the second
+     *     allocation returned 0, and its 0xA1 fill overwrote guest memory
+     *     from address 0. */
+    if (!getenv("RECOMP_HEAP_RECLAIM"))  _putenv_s("RECOMP_HEAP_RECLAIM", "1");
     /*   RECOMP_NV2A_ACK_THREAD: the GPU executor runs asynchronously, as the
      *   NV2A does, instead of the title waiting for every batch to be drawn
      *   -- ~2x the frame rate in a race (9-12 vs 4-7 FPS). =0 for the old

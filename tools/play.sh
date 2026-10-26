@@ -10,4 +10,4 @@ if [ "${1:-}" = diag ]; then
            RECOMP_GUESTCPU_STATS=1 RECOMP_APU_LEVEL=1 RECOMP_VKR_GPUPROF=25 \
            RECOMP_FPS_OVERLAY=1
 fi
-exec build-linux/ssx3_recomp > play_stdout.txt 2> play_stderr.txt
+exec build-linux/ssxot_recomp > play_stdout.txt 2> play_stderr.txt

@@ -44,3 +44,6 @@ void ssx3_StreamDump(void) {}
 void ssx3_StrmTraceDump(void) {}
 void *ssx3_lookup_trace(uint32_t va) { (void)va; return NULL; }
 int ssx3_lensfx_nowait;
+/* Counters SSX 3 kept for the session summary and the race-briefing trace. */
+volatile int g_ssx3_events_started, g_ssx3_events_finished;
+volatile int g_ssx3_at_briefing;

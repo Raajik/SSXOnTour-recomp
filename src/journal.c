@@ -155,8 +155,8 @@ static void xbe_line(const uint8_t *xbe, size_t size, const char *game_dir)
     name[40] = 0;
     log_msg(LOG_INFO, "SYSTEM", "game: \"%s\", title id %08X, version %u, %zu bytes, folder %s",
             name, id, ver, size, game_dir);
-    if (id != 0x4541003Cu)
-        log_msg(LOG_WARN, "SYSTEM", "this is not SSX 3 (4541003C): expect trouble");
+    if (id != 0x45410082u)
+        log_msg(LOG_WARN, "SYSTEM", "this is not SSX On Tour (45410082): expect trouble");
 }
 
 /* The launcher's choices, by name, from the RECOMP_* settings in effect. */
@@ -348,7 +348,7 @@ static void file_hook(const char *path, int write, NTSTATUS_T status)
 void journal_session_header(const uint8_t *xbe, size_t xbe_size, const char *game_dir)
 {
     xbox_file_hook = file_hook;
-    log_msg(LOG_INFO, "SESSION", "SSX 3 recomp, build %s%s%s (compiled %s %s), log level %s", SSX3_BUILD_COMMIT,
+    log_msg(LOG_INFO, "SESSION", "SSX On Tour recomp, build %s%s%s (compiled %s %s), log level %s", SSX3_BUILD_COMMIT,
             SSX3_BUILD_DATE[0] ? " of " : "", SSX3_BUILD_DATE, __DATE__, __TIME__,
             log_level_name(log_level()));
     system_line();
