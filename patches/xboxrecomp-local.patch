@@ -13,7 +13,7 @@ index 0bd4ebd..70568cb 100644
      # Linux: platform layer (Win32 primitives on POSIX) + SDL2 audio + libm
      find_package(SDL2 REQUIRED)
 diff --git i/src/apu/apu_core.c w/src/apu/apu_core.c
-index 258048c..9760f17 100644
+index 258048c..6eafd90 100644
 --- i/src/apu/apu_core.c
 +++ w/src/apu/apu_core.c
 @@ -20,6 +20,7 @@
@@ -277,7 +277,64 @@ index 258048c..9760f17 100644
      qemu_mutex_lock(&d->lock);
  
      while (!qatomic_read(&d->exiting)) {
-@@ -605,6 +750,17 @@ static void *mcpx_apu_frame_thread(void *arg)
+@@ -570,13 +715,56 @@ static void *mcpx_apu_frame_thread(void *arg)
+         int xcntmode = GET_MASK(qatomic_read(&d->regs[NV_PAPU_SECTL]),
+                                 NV_PAPU_SECTL_XCNTMODE);
+         uint32_t fectl = qatomic_read(&d->regs[NV_PAPU_FECTL]);
++        /* The setup engine switched off for a moment counts as running.
++         * SSX On Tour's DirectSound turns XCNTMODE off and on again (SECTL
++         * 0xF -> 0x7 -> 0xF) about every 10 ms while it edits voice state.
++         * On the console that window is microseconds; here the guest code
++         * between the two writes takes 5-10 ms. Silent frames meanwhile
++         * chopped all its sound into 8-frame runs with 8-16 silent frames
++         * between; holding the clock instead drained the device queue into
++         * 32 ms underrun gaps. Off for longer than 50 ms, the title means
++         * it. */
++        {
++            static int64_t off_since;
++            static int was_on;
++            if (xcntmode != NV_PAPU_SECTL_XCNTMODE_OFF) {
++                was_on = 1;
++                off_since = 0;
++            } else if (was_on && !g_test_tone.active) {
++                int64_t now = qemu_clock_get_us(QEMU_CLOCK_REALTIME);
++                if (!off_since)
++                    off_since = now;
++                if (now - off_since < 50000)
++                    xcntmode = 1;           /* still running, as on the console */
++                else
++                    was_on = 0;
++            }
++        }
++
+         bool apu_active = (xcntmode != NV_PAPU_SECTL_XCNTMODE_OFF) &&
+                           !(fectl & NV_PAPU_FECTL_FEMETHMODE_TRAPPED) &&
+                           !(fectl & NV_PAPU_FECTL_FEMETHMODE_HALTED);
+ 
++        /* A bit test, so HALTED (0x80, a subset of TRAPPED's 0xE0) counts
++         * too: xemu's frame thread idles in both modes. */
++        bool fe_trapped = (xcntmode != NV_PAPU_SECTL_XCNTMODE_OFF) &&
++                          (fectl & NV_PAPU_FECTL_FEMETHMODE_TRAPPED) &&
++                          !g_test_tone.active;
++
+         if (apu_active && !g_test_tone.active) {
+             /* Full pipeline: VP voices → DSP → monitor → waveOut */
+             se_frame(d);
++        } else if (fe_trapped) {
++            /* Backport of upstream 7fe4d49. The title has the APU on, but the
++             * front end is trapped (a voice went idle under FETFORCE1) and
++             * stays so until DirectSound's service routine clears FECTL, or
++             * the title halted it. No frame is produced meanwhile, as in xemu,
++             * which waits and re-checks: the device queue holds what is
++             * already paced into it. This used to fall through to the
++             * lightweight branch, which advances the frame counter and hands
++             * the device a silent period: SSX On Tour's music played in 8-frame
++             * runs with 8-16 silent frames between them. The interrupt is
++             * delivered below; the wait is after it. */
+         } else {
+             /* Lightweight: just monitor frame (test tone + software mixer) */
+             mcpx_apu_monitor_frame(d);
+@@ -605,7 +793,26 @@ static void *mcpx_apu_frame_thread(void *arg)
           * off every USB interrupt. */
          qemu_mutex_unlock(&d->lock);
          SwitchToThread();
@@ -293,9 +350,18 @@ index 258048c..9760f17 100644
 +                SwitchToThread();
 +        }
          qemu_mutex_lock(&d->lock);
++        if (fe_trapped &&
++            (qatomic_read(&d->regs[NV_PAPU_FECTL]) &
++             NV_PAPU_FECTL_FEMETHMODE_TRAPPED)) {
++            /* Still trapped after the delivery (held off at raised IRQL, or
++             * cleared from a DPC): give the title a millisecond with the lock
++             * dropped rather than spinning on it. */
++            qemu_cond_timedwait(&d->cond, &d->lock, 1);
++        }
      }
  
-@@ -693,6 +849,14 @@ MCPXAPUState *mcpx_apu_init_standalone(uint8_t *ram_ptr)
+     qemu_mutex_unlock(&d->lock);
+@@ -693,6 +900,14 @@ MCPXAPUState *mcpx_apu_init_standalone(uint8_t *ram_ptr)
          warn_reportf_err(local_err, "mcpx_apu_monitor_init failed: ");
      }
  
@@ -425,7 +491,7 @@ index 871ff5d..d7e96cd 100644
      HrtfFilter hrtf;
  } MCPXAPUVoiceFilter;
 diff --git i/src/apu/apu_vp.c w/src/apu/apu_vp.c
-index f45b42b..415b595 100644
+index f45b42b..98843ac 100644
 --- i/src/apu/apu_vp.c
 +++ w/src/apu/apu_vp.c
 @@ -34,6 +34,33 @@
@@ -616,7 +682,7 @@ index f45b42b..415b595 100644
  }
  
  /* ============================================================
-@@ -1175,6 +1274,41 @@ static void voice_process(MCPXAPUState *d,
+@@ -1175,6 +1274,56 @@ static void voice_process(MCPXAPUState *d,
   * Simplified single-threaded version (no worker threads initially)
   * ============================================================ */
  
@@ -633,15 +699,30 @@ index f45b42b..415b595 100644
 +        checked = 1;
 +        if (p && *p)
 +            f = fopen(p, "w");
++        if (f)
++            fprintf(f, "VPVADDR %08X (voice v at +v*0x80, CBO word at +0x58)\n",
++                    (unsigned)d->regs[NV_PAPU_VPVADDR]);
 +    }
 +    if (!f)
 +        return;
 +    frame = d->ep_frame_div;        /* advances once per 32-sample frame */
-+    if (frame % 15 && frame != last_frame)
-+        return;
++    {
++        /* RECOMP_APU_VOICE_TRACE_V=<n>: that voice only, every frame */
++        static int only = -2;
++        if (only == -2) {
++            const char *e = getenv("RECOMP_APU_VOICE_TRACE_V");
++            only = e && *e ? atoi(e) : -1;
++        }
++        if (only >= 0 && v != only)
++            return;
++        if (only < 0 && frame % 15 && frame != last_frame)
++            return;
++    }
 +    last_frame = frame;
-+    fprintf(f, "f%u v%u list%d stream%u stereo%u size%u cont%u loop%u pitch%04X ba%08X cbo%u lbo%u ebo%u\n",
-+            frame, v, list,
++    fprintf(f, "f%u v%u paused%u list%d stream%u stereo%u size%u cont%u loop%u pitch%04X ba%08X cbo%u lbo%u ebo%u\n",
++            frame, v,
++            voice_get_mask(d, v, NV_PAVS_VOICE_PAR_STATE, NV_PAVS_VOICE_PAR_STATE_PAUSED) != 0,
++            list,
 +            voice_get_mask(d, v, NV_PAVS_VOICE_CFG_FMT, NV_PAVS_VOICE_CFG_FMT_DATA_TYPE) != 0,
 +            voice_get_mask(d, v, NV_PAVS_VOICE_CFG_FMT, NV_PAVS_VOICE_CFG_FMT_STEREO) != 0,
 +            voice_get_mask(d, v, NV_PAVS_VOICE_CFG_FMT, NV_PAVS_VOICE_CFG_FMT_SAMPLE_SIZE),
@@ -658,8 +739,18 @@ index f45b42b..415b595 100644
  void mcpx_apu_vp_frame(MCPXAPUState *d,
                          float mixbins[NUM_MIXBINS][NUM_SAMPLES_PER_FRAME])
  {
-@@ -1203,6 +1337,7 @@ void mcpx_apu_vp_frame(MCPXAPUState *d,
-                 fe_method(d, SE2FE_IDLE_VOICE, v);
+@@ -1200,9 +1349,16 @@ void mcpx_apu_vp_frame(MCPXAPUState *d,
+ 
+             if (!voice_get_mask(d, v, NV_PAVS_VOICE_PAR_STATE,
+                                 NV_PAVS_VOICE_PAR_STATE_ACTIVE_VOICE)) {
+-                fe_method(d, SE2FE_IDLE_VOICE, v);
++                voice_trace(d, v, list + 10);   /* list+10 marks an inactive voice */
++                /* One trap at a time (upstream 7fe4d49): once the front end
++                 * is trapped, a second idle voice in the same frame would
++                 * overwrite FEDECPARAM before the ISR has read the first. */
++                if ((d->regs[NV_PAPU_FECTL] & NV_PAPU_FECTL_FEMETHMODE)
++                        != NV_PAPU_FECTL_FEMETHMODE_TRAPPED)
++                    fe_method(d, SE2FE_IDLE_VOICE, v);
              } else {
                  /* Process voice directly (single-threaded) */
 +                voice_trace(d, v, list);
