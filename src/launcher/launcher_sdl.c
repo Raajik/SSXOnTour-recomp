@@ -215,13 +215,27 @@ static int read_xbe(const char *path, unsigned *title_id, unsigned *entry, char 
     }
     fclose(f);
     memcpy(title_id, cert + 8, 4);
-    for (i = 0; i < 40 && (size_t)i + 1 < name_size; i++) {    /* UTF-16 title name */
-        unsigned short c = (unsigned short)(cert[0xC + i * 2] | cert[0xD + i * 2] << 8);
-        if (!c)
-            break;
-        name[i] = c < 128 ? (char)c : '?';
+    {
+        /* the UTF-16 title name as UTF-8 ("SSX\u2122 On Tour") */
+        size_t o = 0;
+        for (i = 0; i < 40; i++) {
+            unsigned c = (unsigned)(cert[0xC + i * 2] | cert[0xD + i * 2] << 8);
+            int len = c < 0x80 ? 1 : c < 0x800 ? 2 : 3;
+            if (!c || o + (size_t)len >= name_size)
+                break;
+            if (len == 1) {
+                name[o++] = (char)c;
+            } else if (len == 2) {
+                name[o++] = (char)(0xC0 | c >> 6);
+                name[o++] = (char)(0x80 | (c & 0x3F));
+            } else {
+                name[o++] = (char)(0xE0 | c >> 12);
+                name[o++] = (char)(0x80 | ((c >> 6) & 0x3F));
+                name[o++] = (char)(0x80 | (c & 0x3F));
+            }
+        }
+        name[o] = 0;
     }
-    name[i] = 0;
     return 1;
 }
 
@@ -702,7 +716,8 @@ static void frame(int x, int y, int w, int h, SDL_Color c)
 }
 
 /* Draws text with its top-left at (x, y), clipped to max_w logical pixels
- * (0 = none); wrap > 0 wraps at that width. Returns the height used. */
+ * (0 = none; > 0 keeps the end, < 0 keeps the start); wrap > 0 wraps at that
+ * width. Returns the height used. */
 static int text(TTF_Font *f, const char *s, int x, int y, SDL_Color c, int max_w, int wrap)
 {
     SDL_Surface *sf;
@@ -724,6 +739,8 @@ static int text(TTF_Font *f, const char *s, int x, int y, SDL_Color c, int max_w
         /* Too long for its box: keep the end, which is what tells two paths apart. */
         src.x = src.w - S(max_w);
         src.w = S(max_w);
+    } else if (max_w < 0 && src.w > S(-max_w)) {
+        src.w = S(-max_w);              /* a label: keep its start */
     }
     dst.x = S(x);
     dst.y = S(y);
@@ -810,7 +827,7 @@ static void checkbox(int x, int y, int w, const char *label, int *val)
         fill(x, y + 3, 16, 16, hot ? C_HOVER : C_BG);
         frame(x, y + 3, 16, 16, C_BORDER);
     }
-    text(s_font, label, x + 24, y + (22 - font_h(s_font)) / 2, C_TEXT, 0, 0);
+    text(s_font, label, x + 24, y + (22 - font_h(s_font)) / 2, C_TEXT, -(w - 32), 0);
     if (hot && s_click)
         *val = !*val;
 }
