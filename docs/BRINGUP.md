@@ -45,6 +45,12 @@ build or another game. Each fact says how it is known: **Verified** (checked by 
 | Crash ~5 s into the first tour race | D3D's `EndVisibilityTest` asks for report pages below 16 MB (`GET_REPORT` offsets are 24 bits); the range was ignored, and the report writes landed on a game object | `MmAllocateContiguousMemoryEx` honours its range and 15-16 MB is kept for such requests (as upstream 13d9637) | Verified |
 | Music is noise | voices played at 48 kHz whatever their pitch (upstream 148431d); DirectSound turns the APU setup engine off and on about every 10 ms, a microsecond window on the console that takes 5-10 ms here, and the frame thread emitted silence through it | resampler backport; an off window under 50 ms counts as running; upstream 7fe4d49 | Verified (recorded output; the player confirmed) |
 
+Ink & Color (`RECOMP_INK`, the scene pass inherited from SSX 3) needs the frame's camera, fitted from the terrain's
+vertex program. This game's terrain is `BF72911C` (about 130 draws a frame, all giving one camera); it is the
+default for `RECOMP_SCENE_VSH`. `C4F7A68E` looks plausible but draws objects with their own model matrices: each draw
+gives a different camera, and the ink lines came and went. Verified with `RECOMP_CAMFIT_TRACE=1` and
+`tools/camfit_score.py` in a headless race (511 frames, every draw agreeing, no jumps), and screenshots with Ink on.
+
 `RECOMP_SKIP_INTRO` (default on) skips the EA logo and intro movie through `RECOMP_EMPTY_FILES`, which serves
 matching game files as empty (`tests/kernel_mods`). Verified.
 
@@ -58,4 +64,5 @@ matching game files as empty (`tests/kernel_mods`). Verified.
 - `RECOMP_PAD_SCRIPT` (button presses at times) and `RECOMP_SNAP_TRIGGER` (screenshots) for headless runs.
 - Audio: `SDL_AUDIODRIVER=disk SDL_DISKAUDIOFILE=out.raw` records what is played; `RECOMP_APU_VOICE_TRACE=<file>`
   (`_V=<voice>` for one voice every frame) shows voice formats and play positions.
+- `RECOMP_CAMFIT_TRACE=1` + `tools/camfit_score.py`: which vertex program draws the world, for the scene pass.
 - `RECOMP_FS_TRACE=1` (EA archive opens), `RECOMP_SAVE_TRACE=1` (save natives and the storage thread's results).

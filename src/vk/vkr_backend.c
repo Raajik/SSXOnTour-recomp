@@ -1381,8 +1381,10 @@ static void spike_init(void)
  * units z, clip w -- measured by running the program on the CPU at the
  * origin and the three unit points: (x w, y w, z w, w) is linear in the world
  * position, so four runs give the 4x4 matrix. Taken from the first draw of a
- * terrain program (RECOMP_SCENE_VSH, default E4F2B8D0, the slopes) each
- * frame; frames without one (menus) get no motion blur. */
+ * terrain program (RECOMP_SCENE_VSH; default BF72911C, SSX On Tour's slopes,
+ * about 90 draws a frame that all give the same camera; SSX 3's was E4F2B8D0)
+ * each frame; frames without one (menus) get no scene pass. C4F7A68E is not
+ * one: it draws objects with their own model matrices. */
 static struct {
     int valid;                  /* this frame */
     double m[4][4];             /* rows: x w, y w, z w, w */
@@ -1416,7 +1418,7 @@ static int cam_program(uint32_t hash)
     static uint32_t want[8];
     int i;
     if (n < 0)
-        n = prog_list("RECOMP_SCENE_VSH", "E4F2B8D0", want, 8);
+        n = prog_list("RECOMP_SCENE_VSH", "BF72911C", want, 8);
     for (i = 0; i < n; i++)
         if (want[i] == hash)
             return 1;
@@ -1440,7 +1442,9 @@ static int rider_program(uint32_t hash)
     return 0;
 }
 
-static void scene_camera(const float *in, const Nv2aVshProgram *p)
+/* The camera (m, eye) that program p's draw with inputs in implies, as if its
+ * vertex positions were world positions; 0 when its first vertex is too near. */
+static int cam_fit(const float *in, const Nv2aVshProgram *p, double m[4][4], double eye[3])
 {
     /* the base vertex, then +-h along each axis: the program's output times
      * w is linear in the input, so a large step is exact and keeps its float
@@ -1453,8 +1457,8 @@ static void scene_camera(const float *in, const Nv2aVshProgram *p)
     float vin[NV2A_VSH_INPUTS][4];
     double out[7][4], h = 1.0;
     int a, k, r;
-    if (s_cam.valid || !cam_program(p->hash) || p->in_slot[0] == 0xFF)
-        return;
+    if (p->in_slot[0] == 0xFF)
+        return 0;
     memset(vin, 0, sizeof vin);
     for (a = 0; a < NV2A_VSH_INPUTS; a++)
         if (p->in_slot[a] != 0xFF)
@@ -1466,7 +1470,7 @@ static void scene_camera(const float *in, const Nv2aVshProgram *p)
         vin[0][2] = (float)(in[p->in_slot[0] * 4 + 2] + pts[k][2] * h);
         vin[0][3] = 1.0f;
         if (!nv2a_vsh_run((const float (*)[4])vin, &o))
-            return;
+            return 0;
         out[k][0] = (double)o.pos[0] * o.pos[3]; out[k][1] = (double)o.pos[1] * o.pos[3];
         out[k][2] = (double)o.pos[2] * o.pos[3]; out[k][3] = o.pos[3];
         if (k == 0) {
@@ -1477,18 +1481,18 @@ static void scene_camera(const float *in, const Nv2aVshProgram *p)
              * flickered off for a frame in the Metro City pipes). The next
              * terrain draw of the frame is tried instead. */
             if (!(o.pos[3] > 256.0f))
-                return;
+                return 0;
             h = fmin(256.0, fmax(1.0, 0.1 * o.pos[3]));
         } else if (!(o.pos[3] > 0.0f))
-            return;
+            return 0;
     }
     {
         double base[3] = {in[p->in_slot[0] * 4], in[p->in_slot[0] * 4 + 1], in[p->in_slot[0] * 4 + 2]};
         for (r = 0; r < 4; r++) {
             for (k = 0; k < 3; k++)
-                s_cam.m[r][k] = (out[1 + 2 * k][r] - out[2 + 2 * k][r]) / (2.0 * h);
+                m[r][k] = (out[1 + 2 * k][r] - out[2 + 2 * k][r]) / (2.0 * h);
             /* constant term at the world origin, not at the first vertex */
-            s_cam.m[r][3] = out[0][r] - s_cam.m[r][0] * base[0] - s_cam.m[r][1] * base[1] - s_cam.m[r][2] * base[2];
+            m[r][3] = out[0][r] - m[r][0] * base[0] - m[r][1] * base[1] - m[r][2] * base[2];
         }
     }
     {
@@ -1497,22 +1501,30 @@ static void scene_camera(const float *in, const Nv2aVshProgram *p)
         int i, j, q;
         for (i = 0; i < 3; i++) {
             int row = i < 2 ? i : 3;
-            for (j = 0; j < 3; j++) a[i][j] = s_cam.m[row][j];
-            a[i][3] = -s_cam.m[row][3];
+            for (j = 0; j < 3; j++) a[i][j] = m[row][j];
+            a[i][3] = -m[row][3];
         }
         for (i = 0; i < 3; i++) {             /* Gauss-Jordan, partial pivot */
             int pv = i;
             for (q = i + 1; q < 3; q++) if (fabs(a[q][i]) > fabs(a[pv][i])) pv = q;
             for (j = 0; j < 4; j++) { double t = a[i][j]; a[i][j] = a[pv][j]; a[pv][j] = t; }
-            if (fabs(a[i][i]) < 1e-30) return;
+            if (fabs(a[i][i]) < 1e-30) return 0;
             for (q = 0; q < 3; q++) {
                 if (q == i) continue;
                 f = a[q][i] / a[i][i];
                 for (j = 0; j < 4; j++) a[q][j] -= f * a[i][j];
             }
         }
-        for (i = 0; i < 3; i++) s_cam.eye[i] = a[i][3] / a[i][i];
+        for (i = 0; i < 3; i++) eye[i] = a[i][3] / a[i][i];
     }
+    return 1;
+}
+
+
+static void scene_camera(const float *in, const Nv2aVshProgram *p)
+{
+    if (s_cam.valid || !cam_program(p->hash) || !cam_fit(in, p, s_cam.m, s_cam.eye))
+        return;
     s_cam.valid = 1;
     s_cam_prog = p->hash;
     s_cam_inv_ok = inv4(s_cam.m, s_cam_inv);
@@ -2005,6 +2017,16 @@ static int be_draw_vsh(const Nv2aTarget *t, uint32_t prim, const float *in, uint
         bind_textures(&st);
         primlog(&st, n, 1);
         scene_camera(in, p);
+        {
+            /* RECOMP_CAMFIT_TRACE=1: every draw's camera fit, for finding a new
+             * game's terrain program (tools/camfit_score.py ranks them) */
+            static int tr = -1;
+            double fm[4][4], fe[3];
+            if (tr < 0) tr = getenv("RECOMP_CAMFIT_TRACE") != NULL;
+            if (tr && cam_fit(in, p, fm, fe))
+                fprintf(stderr, "[CAMFIT] f %u prog %08X eye %.1f %.1f %.1f\n",
+                        s_spike_frame, p->hash, fe[0], fe[1], fe[2]);
+        }
         {
             static int no_shadow = -1;
             if (no_shadow < 0) no_shadow = getenv("RECOMP_VKR_NO_SHADOW") != NULL;
