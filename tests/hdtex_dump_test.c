@@ -1,5 +1,5 @@
-/* src/vk/vkr_hdtex.c: the texture dump writes a texture once, and nothing for
- * a surface the game redraws every frame (the rider's shadow). */
+/* src/vk/vkr_hdtex.c: the texture dump writes a texture once, and only the first
+ * frames of a surface the game redraws every frame (the rider's shadow). */
 #include "../src/vk/vkr_hdtex.h"
 
 #include <dirent.h>
@@ -52,20 +52,25 @@ int main(void)
     /* A shadow: one address, new pixels every frame (30 FPS for a second). */
     for (i = 0; i < 30; i++)
         hdtex_dump(0x1000u + (uint64_t)i, 0x8228D700u, i * 33.0, px, 4, 4, 6);
-    CHECK(files() == 1);
+    CHECK(files() == 3);                  /* its first frames only */
 
     /* A texture drawn every frame: the same pixels, dumped once. */
     for (i = 0; i < 30; i++)
         hdtex_dump(0x2000u, 0x81000000u, i * 33.0, px, 4, 4, 6);
-    CHECK(files() == 2);
+    CHECK(files() == 4);
 
     /* A new texture in a freed address seconds later is a texture, not a redraw. */
     hdtex_dump(0x3000u, 0x81000000u, 5000.0, px, 4, 4, 6);
-    CHECK(files() == 3);
+    CHECK(files() == 5);
 
     /* The shadow address long after its last redraw: its next pixels are dumped. */
     hdtex_dump(0x4000u, 0x8228D700u, 9000.0, px, 4, 4, 6);
-    CHECK(files() == 4);
+    CHECK(files() == 6);
+
+    /* One texture drawn with two palettes in every frame: both are dumped. */
+    for (i = 0; i < 30; i++)
+        hdtex_dump(i & 1 ? 0x5001u : 0x5000u, 0x82000000u, i * 16.0, px, 4, 4, 6);
+    CHECK(files() == 8);
 
     {
         char cmd[300];
