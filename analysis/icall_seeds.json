@@ -98,5 +98,685 @@
   "start": "0x002A1D0F",
   "observed": true,
   "note": "Indirect-call target observed at runtime; decodes as a function body."
+ },
+ {
+  "start": "0x003031B0",
+  "observed": true,
+  "note": "Indirect-call target observed at runtime; decodes as a function body."
+ },
+ {
+  "start": "0x0030274B",
+  "observed": true,
+  "note": "XPP driver table slot 0x30064C; reached by indirect call (runtime: [ICALL] Failed to resolve)"
+ },
+ {
+  "start": "0x0030279D",
+  "observed": false,
+  "note": "XPP driver table slot 0x300694, next to 0x30274B's; same prologue"
+ },
+ {
+  "start": "0x00302B91",
+  "observed": false,
+  "note": "XPP driver table slots 0x300748/0x300760"
+ },
+ {
+  "start": "0x00306E0C",
+  "observed": false,
+  "note": "XPP driver table slot 0x30078C"
+ },
+ {
+  "start": "0x00301BD4",
+  "observed": false,
+  "note": "XPP driver table slot 0x3006BC; same prologue as 0x302B91"
+ },
+ {
+  "start": "0x00014E7B",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00019000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0001E000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0001FFFF",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00020004",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00020005",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00023184",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00024000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00025410",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0002EDEF",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00030000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00030001",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00032000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0003C000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0003D090",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0003FFC0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0003FFFC",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00040004",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00040304",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0004033C",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0004034C",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00040364",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0004036C",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00040374",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00040378",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00040402",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00040404",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00048080",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00060603",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00060606",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00061A80",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00070000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00070001",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00074004",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0007D000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0007FFFF",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00080000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00080001",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0008C610",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00090020",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000948D0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000948E0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000948F0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00094A60",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00094E40",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00094F10",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000950C0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00096260",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00098000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000990B0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0009D4D0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0009FC38",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000A1C90",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000A65E0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000A6660",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000A6710",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000BF770",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000C3500",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000F423F",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000F4240",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x000FF000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00100001",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00100003",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00110000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00110101",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00120002",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00120117",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00123400",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00197D00",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00200020",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0022DA9B",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0022F115",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0022FE63",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00230000",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002345A4",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00234857",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00234B60",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00235277",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0023527C",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00235C90",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00240F53",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0024985A",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00250994",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0025099F",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002509B8",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002509C3",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002509CE",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002509D9",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002509E4",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00250A35",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x00251463",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0026D131",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0026D365",
+  "observed": true,
+  "note": "APT native callback, set as an immediate at 0x0026F448; runtime: [ICALL] Failed to resolve, then a crash"
+ },
+ {
+  "start": "0x0026D472",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002773CB",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002784E0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0027F685",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0028756C",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0028814C",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x0028829B",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A05C8",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A0F0E",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A44AB",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A44C9",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A44E7",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4505",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4517",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4529",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A453D",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4551",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4565",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4579",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A458D",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A45A1",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A45B3",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A45C5",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A45D7",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A45E9",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A45FB",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A460F",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4623",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4635",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4647",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4659",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A466D",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002A4681",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002B0B90",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002B0BE0",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002B1060",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
+ },
+ {
+  "start": "0x002B12BF",
+  "observed": false,
+  "note": "Stored as an immediate in code (push/mov), not in a data table (tools/imm_code_refs.py); passes seed_from_log's body probe. Static, not seen at runtime."
  }
 ]
