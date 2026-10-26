@@ -1,6 +1,6 @@
-diff --git c/src/apu/CMakeLists.txt w/src/apu/CMakeLists.txt
+diff --git i/src/apu/CMakeLists.txt w/src/apu/CMakeLists.txt
 index 0bd4ebd..70568cb 100644
---- c/src/apu/CMakeLists.txt
+--- i/src/apu/CMakeLists.txt
 +++ w/src/apu/CMakeLists.txt
 @@ -40,6 +40,9 @@ if(WIN32)
      # target to actually call into the APU failed at link with an undefined
@@ -12,9 +12,9 @@ index 0bd4ebd..70568cb 100644
  else()
      # Linux: platform layer (Win32 primitives on POSIX) + SDL2 audio + libm
      find_package(SDL2 REQUIRED)
-diff --git c/src/apu/apu_core.c w/src/apu/apu_core.c
+diff --git i/src/apu/apu_core.c w/src/apu/apu_core.c
 index 258048c..9760f17 100644
---- c/src/apu/apu_core.c
+--- i/src/apu/apu_core.c
 +++ w/src/apu/apu_core.c
 @@ -20,6 +20,7 @@
   */
@@ -310,9 +310,9 @@ index 258048c..9760f17 100644
      /* Start background frame thread */
      qemu_thread_create(&d->apu_thread, "mcpx.apu_thread",
                         mcpx_apu_frame_thread, d, QEMU_THREAD_JOINABLE);
-diff --git c/src/apu/apu_dsp.c w/src/apu/apu_dsp.c
+diff --git i/src/apu/apu_dsp.c w/src/apu/apu_dsp.c
 index 7156be9..622dbb0 100644
---- c/src/apu/apu_dsp.c
+--- i/src/apu/apu_dsp.c
 +++ w/src/apu/apu_dsp.c
 @@ -23,8 +23,13 @@
   */
@@ -408,9 +408,9 @@ index 7156be9..622dbb0 100644
                      if (b & 1) right += mixbins[b][i];
                      else       left  += mixbins[b][i];
                  }
-diff --git c/src/apu/apu_vp.c w/src/apu/apu_vp.c
+diff --git i/src/apu/apu_vp.c w/src/apu/apu_vp.c
 index f45b42b..d03ef75 100644
---- c/src/apu/apu_vp.c
+--- i/src/apu/apu_vp.c
 +++ w/src/apu/apu_vp.c
 @@ -140,10 +140,16 @@ static void voice_off(MCPXAPUState *d, uint16_t v)
      set_notify_status(d, v, notifier, NV1BA0_NOTIFICATION_STATUS_DONE_SUCCESS);
@@ -429,9 +429,9 @@ index f45b42b..d03ef75 100644
  
      uint64_t mask = 1ULL << (v % 64);
      if (lock) {
-diff --git c/src/apu/apu_xaudio2.c w/src/apu/apu_xaudio2.c
+diff --git i/src/apu/apu_xaudio2.c w/src/apu/apu_xaudio2.c
 index cd69e57..e7e3053 100644
---- c/src/apu/apu_xaudio2.c
+--- i/src/apu/apu_xaudio2.c
 +++ w/src/apu/apu_xaudio2.c
 @@ -11,8 +11,8 @@
  #include <string.h>
@@ -913,9 +913,9 @@ index cd69e57..e7e3053 100644
 +}
  
  #endif /* _WIN32 */
-diff --git c/src/apu/apu_xaudio2.h w/src/apu/apu_xaudio2.h
+diff --git i/src/apu/apu_xaudio2.h w/src/apu/apu_xaudio2.h
 index 83e652d..235e61f 100644
---- c/src/apu/apu_xaudio2.h
+--- i/src/apu/apu_xaudio2.h
 +++ w/src/apu/apu_xaudio2.h
 @@ -18,7 +18,16 @@ int xa2_is_active(void);
  /* Submit interleaved stereo 16-bit samples. Returns 1 if accepted. */
@@ -934,9 +934,9 @@ index 83e652d..235e61f 100644
 +void xa2_take_stats(int *underruns, int *drops, int *min_queued, int *waits, int *refills);
  
  #endif /* APU_XAUDIO2_H */
-diff --git c/src/d3d/CMakeLists.txt w/src/d3d/CMakeLists.txt
+diff --git i/src/d3d/CMakeLists.txt w/src/d3d/CMakeLists.txt
 index bb42c28..973b6c7 100644
---- c/src/d3d/CMakeLists.txt
+--- i/src/d3d/CMakeLists.txt
 +++ w/src/d3d/CMakeLists.txt
 @@ -17,6 +17,12 @@ if(WIN32)
      # Offline smoke test for the pure format layer (no D3D11 device needed).
@@ -951,9 +951,9 @@ index bb42c28..973b6c7 100644
  else()
      add_library(xbox_d3d8 STATIC
          d3d8_gl.c
-diff --git c/src/input/CMakeLists.txt w/src/input/CMakeLists.txt
+diff --git i/src/input/CMakeLists.txt w/src/input/CMakeLists.txt
 index caef326..6d5d794 100644
---- c/src/input/CMakeLists.txt
+--- i/src/input/CMakeLists.txt
 +++ w/src/input/CMakeLists.txt
 @@ -8,6 +8,8 @@ target_include_directories(xbox_input PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
  
@@ -964,9 +964,9 @@ index caef326..6d5d794 100644
  else()
      find_package(SDL2 REQUIRED)
      target_link_libraries(xbox_input PUBLIC platform SDL2::SDL2)
-diff --git c/src/input/xinput_device.c w/src/input/xinput_device.c
+diff --git i/src/input/xinput_device.c w/src/input/xinput_device.c
 index a91edbe..ae120d6 100644
---- c/src/input/xinput_device.c
+--- i/src/input/xinput_device.c
 +++ w/src/input/xinput_device.c
 @@ -13,6 +13,135 @@
  #include "xinput_xbox.h"
@@ -1507,9 +1507,9 @@ index a91edbe..ae120d6 100644
      return ERROR_SUCCESS;
  }
  
-diff --git c/src/kernel/CMakeLists.txt w/src/kernel/CMakeLists.txt
+diff --git i/src/kernel/CMakeLists.txt w/src/kernel/CMakeLists.txt
 index a045752..6e2afac 100644
---- c/src/kernel/CMakeLists.txt
+--- i/src/kernel/CMakeLists.txt
 +++ w/src/kernel/CMakeLists.txt
 @@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.20)
  
@@ -1537,9 +1537,9 @@ index a045752..6e2afac 100644
  else()
      # Linux: platform layer (POSIX host primitives) + OpenSSL for crypto.
      find_package(OpenSSL REQUIRED)
-diff --git c/src/kernel/README.md w/src/kernel/README.md
+diff --git i/src/kernel/README.md w/src/kernel/README.md
 index f0437c9..5142ddc 100644
---- c/src/kernel/README.md
+--- i/src/kernel/README.md
 +++ w/src/kernel/README.md
 @@ -161,6 +161,14 @@ Z:\cache.dat                 → <save_dir>\cache\cache.dat
  xbox_path_init("Burnout 3 Takedown", "saves");
@@ -1556,161 +1556,9 @@ index f0437c9..5142ddc 100644
  ## Threading
  
  Xbox threads use `PsCreateSystemThreadEx` with NT-style parameters. We create Win32 threads with a wrapper that sets up the register context:
-diff --git c/src/kernel/guest_ptr.h w/src/kernel/guest_ptr.h
-new file mode 100644
-index 0000000..c24d5b4
---- /dev/null
-+++ w/src/kernel/guest_ptr.h
-@@ -0,0 +1,27 @@
-+/* Guest VA -> host pointer, for host code that reads or writes guest memory
-+ * (device models, bridges, diagnostics).
-+ *
-+ * Natively the guest is laid out 1:1 at a host offset, so this is offset + va
-+ * for every mapped range (RAM, its mirrors, the contiguous window, the
-+ * apertures). The web build has no such layout: a page map with 1 MB
-+ * granularity gives each guest MB its host delta (guest_wasm.c). Pointer
-+ * arithmetic on the result is fine within one mapped range. */
-+#ifndef XBOXRECOMP_GUEST_PTR_H
-+#define XBOXRECOMP_GUEST_PTR_H
-+#include <stddef.h>
-+#include <stdint.h>
-+
-+#if defined(__EMSCRIPTEN__)
-+extern uint32_t g_xbox_pagemap[4096];
-+#define XBOX_HOST(va) ((uint8_t *)(uintptr_t)((uint32_t)(va) + g_xbox_pagemap[(uint32_t)(va) >> 20]))
-+#else
-+ptrdiff_t xbox_GetMemoryOffset(void);
-+#define XBOX_HOST(va) ((uint8_t *)xbox_GetMemoryOffset() + (uint32_t)(va))
-+#endif
-+
-+void *xbox_GuestToHost(uint32_t va);
-+/* The inverse, for diagnostics (a guest object the host holds a pointer to).
-+ * On the web build it knows RAM and the contiguous window; else 0. */
-+uint32_t xbox_HostToGuest(const void *host);
-+
-+#endif
-diff --git c/src/kernel/guest_wasm.c w/src/kernel/guest_wasm.c
-new file mode 100644
-index 0000000..45b6a74
---- /dev/null
-+++ w/src/kernel/guest_wasm.c
-@@ -0,0 +1,113 @@
-+/*
-+ * Guest address space for the WebAssembly build.
-+ *
-+ * Natively the guest's 4 GB are laid out 1:1 at a host offset, with the RAM
-+ * mirrors, the contiguous window and the tiled aperture as extra views of the
-+ * same pages. wasm32 has one linear memory, no fixed placement and no
-+ * aliasing, so every guest access goes through g_xbox_pagemap instead (see
-+ * XBOX_PTR in recomp_types.h): one entry per guest MB holding the host delta,
-+ * host = va + delta (mod 2^32).
-+ *
-+ *   0x00000000  RAM (map size, 64 MB retail), plus mirrors every map size
-+ *               up to 1 + XBOX_NUM_MIRRORS map sizes (same pages)
-+ *   0x80000000  contiguous window (XBOX_CONTIG_SIZE)
-+ *   0xF0000000  tiled aperture: the contiguous window again
-+ *   0xFD000000  NV2A registers, 16 MB of plain memory
-+ *   0xFE800000  MCPX registers, 8 MB (device ranges are serviced by
-+ *               xbox_mmio_read/write before the page map is consulted)
-+ *   0xFF000000  flash, 1 MB
-+ *   elsewhere   one shared scratch MB: reads garbage, never traps
-+ */
-+#if defined(__EMSCRIPTEN__)
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+#include "kernel.h"
-+#include "xbox_memory_layout.h"
-+
-+#define MB (1u << 20)
-+
-+uint32_t g_xbox_pagemap[4096];
-+
-+static uint8_t *s_ram, *s_contig, *s_nv2a, *s_mcpx, *s_flash, *s_scratch;
-+static size_t s_ram_size;
-+static uint32_t s_contig_base, s_contig_size;
-+
-+static uint8_t *block(size_t bytes)
-+{
-+    void *p = aligned_alloc(MB, bytes);
-+    if (p)
-+        memset(p, 0, bytes);
-+    return (uint8_t *)p;
-+}
-+
-+static void map(uint32_t va, uint32_t bytes, uint8_t *host)
-+{
-+    uint32_t mb;
-+    for (mb = va >> 20; mb < ((va + (bytes - 1)) >> 20) + 1 && mb < 4096; mb++)
-+        g_xbox_pagemap[mb] = (uint32_t)(uintptr_t)host - va;
-+}
-+
-+/* Allocates every block and fills the page map. Returns the RAM block, the
-+ * host address of guest 0. */
-+void *xbox_WasmMapGuest(size_t ram_size, unsigned mirrors,
-+                        uint32_t contig_base, uint32_t contig_size,
-+                        uint32_t tiled_base, uint32_t tiled_size)
-+{
-+    uint32_t mb, m;
-+
-+    if (s_ram)
-+        return s_ram;
-+    s_ram_size = ram_size;
-+    s_contig_base = contig_base;
-+    s_contig_size = contig_size;
-+    s_ram     = block(ram_size);
-+    s_contig  = block(contig_size);
-+    s_nv2a    = block(16 * MB);
-+    s_mcpx    = block(8 * MB);
-+    s_flash   = block(MB);
-+    s_scratch = block(MB);
-+    if (!s_ram || !s_contig || !s_nv2a || !s_mcpx || !s_flash || !s_scratch) {
-+        fprintf(stderr, "xbox_WasmMapGuest: out of memory\n");
-+        return NULL;
-+    }
-+    for (mb = 0; mb < 4096; mb++)
-+        g_xbox_pagemap[mb] = (uint32_t)(uintptr_t)s_scratch - (mb << 20);
-+    for (m = 1; m <= mirrors; m++) {
-+        uint64_t lo = (uint64_t)m * ram_size;
-+        if (lo + ram_size > contig_base)
-+            break;
-+        map((uint32_t)lo, (uint32_t)ram_size, s_ram);
-+    }
-+    map(0, (uint32_t)ram_size, s_ram);
-+    map(contig_base, contig_size, s_contig);
-+    map(tiled_base, tiled_size < contig_size ? tiled_size : contig_size, s_contig);
-+    map(0xFD000000u, 16 * MB, s_nv2a);
-+    map(0xFE800000u, 8 * MB, s_mcpx);
-+    map(0xFF000000u, MB, s_flash);
-+    fprintf(stderr, "  [WASM] guest memory: RAM %u MB at %p (+%u mirrors), contiguous"
-+            " %u MB at %p, NV2A %p, MCPX %p, flash %p\n",
-+            (unsigned)(ram_size / MB), (void *)s_ram, m - 1,
-+            contig_size / MB, (void *)s_contig, (void *)s_nv2a,
-+            (void *)s_mcpx, (void *)s_flash);
-+    return s_ram;
-+}
-+
-+uint32_t xbox_HostToGuest(const void *host)
-+{
-+    const uint8_t *h = (const uint8_t *)host;
-+    if (s_ram && h >= s_ram && h < s_ram + s_ram_size)
-+        return (uint32_t)(h - s_ram);
-+    if (s_contig && h >= s_contig && h < s_contig + s_contig_size)
-+        return s_contig_base + (uint32_t)(h - s_contig);
-+    return 0;
-+}
-+
-+/* Host address of a mapped aperture, by its guest base. */
-+void *xbox_WasmBlock(uint32_t guest_base)
-+{
-+    return (void *)(uintptr_t)(guest_base + g_xbox_pagemap[guest_base >> 20]);
-+}
-+#endif
-diff --git c/src/kernel/kernel.h w/src/kernel/kernel.h
+diff --git i/src/kernel/kernel.h w/src/kernel/kernel.h
 index b9a02bc..ee87394 100644
---- c/src/kernel/kernel.h
+--- i/src/kernel/kernel.h
 +++ w/src/kernel/kernel.h
 @@ -115,6 +115,9 @@ enum {
  #ifndef STATUS_ACCESS_DENIED
@@ -1746,9 +1594,9 @@ index b9a02bc..ee87394 100644
  NTSTATUS __stdcall xbox_NtFlushBuffersFile(HANDLE FileHandle, PXBOX_IO_STATUS_BLOCK IoStatusBlock);
  
  NTSTATUS __stdcall xbox_NtQueryFullAttributesFile(
-diff --git c/src/kernel/kernel_bridge.c w/src/kernel/kernel_bridge.c
+diff --git i/src/kernel/kernel_bridge.c w/src/kernel/kernel_bridge.c
 index c65ba43..b8dbb5d 100644
---- c/src/kernel/kernel_bridge.c
+--- i/src/kernel/kernel_bridge.c
 +++ w/src/kernel/kernel_bridge.c
 @@ -26,6 +26,7 @@
   */
@@ -3148,9 +2996,9 @@ index c65ba43..b8dbb5d 100644
          g_thunk_table_count * 4,
          old_protect,
          &old_protect
-diff --git c/src/kernel/kernel_file.c w/src/kernel/kernel_file.c
+diff --git i/src/kernel/kernel_file.c w/src/kernel/kernel_file.c
 index 42135e0..46359b4 100644
---- c/src/kernel/kernel_file.c
+--- i/src/kernel/kernel_file.c
 +++ w/src/kernel/kernel_file.c
 @@ -18,6 +18,7 @@
  #include "kernel.h"
@@ -3790,9 +3638,9 @@ index 42135e0..46359b4 100644
 +    }
 +    return st;
 +}
-diff --git c/src/kernel/kernel_hal.c w/src/kernel/kernel_hal.c
+diff --git i/src/kernel/kernel_hal.c w/src/kernel/kernel_hal.c
 index 1ad4fff..7ba275f 100644
---- c/src/kernel/kernel_hal.c
+--- i/src/kernel/kernel_hal.c
 +++ w/src/kernel/kernel_hal.c
 @@ -12,6 +12,7 @@
   */
@@ -3896,132 +3744,9 @@ index 1ad4fff..7ba275f 100644
      ExitProcess(0);
  }
  
-diff --git c/src/kernel/kernel_mods.c w/src/kernel/kernel_mods.c
-new file mode 100644
-index 0000000..d44212d
---- /dev/null
-+++ w/src/kernel/kernel_mods.c
-@@ -0,0 +1,73 @@
-+/* Asset mods: whole-file overrides of the game folder (kernel_mods.h). */
-+#include "kernel_mods.h"
-+
-+#include <stdio.h>
-+#include <string.h>
-+
-+static char s_dir[512];
-+static char s_names[XBOX_MODS_MAX][128];
-+static int s_count;
-+
-+/* A mod name is one folder inside the mods dir: no separators, no "..". */
-+static int name_ok(const char *s)
-+{
-+    return *s && !strchr(s, '/') && !strchr(s, '\\') && !strstr(s, "..");
-+}
-+
-+int xbox_mods_init(const char *mods_dir)
-+{
-+    char path[640], line[256];
-+    FILE *f;
-+
-+    s_count = 0;
-+    snprintf(s_dir, sizeof s_dir, "%s", mods_dir ? mods_dir : "");
-+    if (!s_dir[0])
-+        return 0;
-+    snprintf(path, sizeof path, "%s/load-order.txt", s_dir);
-+    if (!(f = fopen(path, "r")))
-+        return 0;
-+    while (s_count < XBOX_MODS_MAX && fgets(line, sizeof line, f)) {
-+        char *s = line, *e;
-+        while (*s == ' ' || *s == '\t')
-+            s++;
-+        e = s + strlen(s);
-+        while (e > s && (e[-1] == '\n' || e[-1] == '\r' || e[-1] == ' ' || e[-1] == '\t'))
-+            *--e = '\0';
-+        if (*s == '#' || !name_ok(s) || (size_t)(e - s) >= sizeof s_names[0])
-+            continue;
-+        snprintf(s_names[s_count++], sizeof s_names[0], "%s", s);
-+    }
-+    fclose(f);
-+    return s_count;
-+}
-+
-+int xbox_mods_count(void)
-+{
-+    return s_count;
-+}
-+
-+const char *xbox_mods_dir(void)
-+{
-+    return s_dir;
-+}
-+
-+const char *xbox_mods_name(int i)
-+{
-+    return i >= 0 && i < s_count ? s_names[i] : NULL;
-+}
-+
-+int xbox_mods_lookup(const char *rel, char *out, size_t out_size, int (*exists)(char *path))
-+{
-+    int i;
-+    if (!s_count || !rel || !*rel || strstr(rel, ".."))
-+        return 0;
-+    while (*rel == '/')
-+        rel++;
-+    for (i = s_count - 1; i >= 0; i--) {
-+        if ((size_t)snprintf(out, out_size, "%s/%s/%s", s_dir, s_names[i], rel) >= out_size)
-+            continue;
-+        if (exists(out))
-+            return i + 1;
-+    }
-+    return 0;
-+}
-diff --git c/src/kernel/kernel_mods.h w/src/kernel/kernel_mods.h
-new file mode 100644
-index 0000000..87483f7
---- /dev/null
-+++ w/src/kernel/kernel_mods.h
-@@ -0,0 +1,38 @@
-+/*
-+ * Asset mods: whole-file overrides of the game folder.
-+ *
-+ * <mods dir>/load-order.txt lists the enabled mods, one folder name per line
-+ * (blank lines and lines starting with '#' are skipped); a later line wins
-+ * over an earlier one. Each mod folder mirrors the game folder, so
-+ * mods/<name>/data/x.big replaces game/data/x.big. Mods are only read.
-+ */
-+#ifndef XBOX_KERNEL_MODS_H
-+#define XBOX_KERNEL_MODS_H
-+
-+#include <stddef.h>
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+#define XBOX_MODS_MAX 64
-+
-+/* Reads <mods_dir>/load-order.txt. Returns the number of mods enabled (0 when
-+ * the folder or the file is missing). Calling it again starts over. */
-+int xbox_mods_init(const char *mods_dir);
-+
-+int xbox_mods_count(void);
-+const char *xbox_mods_dir(void);        /* the folder given to xbox_mods_init */
-+const char *xbox_mods_name(int i);      /* in load order, 0 = lowest priority */
-+
-+/* rel: a path relative to the game folder, '/' separators. Tries each enabled
-+ * mod, last first. exists() gets a candidate host path, may fix its letter case
-+ * in place, and returns nonzero when that file is there. On a hit the host
-+ * path is in out and the return value is the mod's index + 1; 0 = no mod has it. */
-+int xbox_mods_lookup(const char *rel, char *out, size_t out_size, int (*exists)(char *path));
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git c/src/kernel/kernel_path.c w/src/kernel/kernel_path.c
+diff --git i/src/kernel/kernel_path.c w/src/kernel/kernel_path.c
 index caf6390..36a6f66 100644
---- c/src/kernel/kernel_path.c
+--- i/src/kernel/kernel_path.c
 +++ w/src/kernel/kernel_path.c
 @@ -16,6 +16,40 @@
  #include <stdio.h>
@@ -4550,9 +4275,9 @@ index caf6390..36a6f66 100644
          XBOX_TRACE(XBOX_LOG_PATH, "%s -> %s", xbox_path, host_path_buf);
          return TRUE;
      }
-diff --git c/src/kernel/kernel_rtl.c w/src/kernel/kernel_rtl.c
+diff --git i/src/kernel/kernel_rtl.c w/src/kernel/kernel_rtl.c
 index 9760735..1f5cc05 100644
---- c/src/kernel/kernel_rtl.c
+--- i/src/kernel/kernel_rtl.c
 +++ w/src/kernel/kernel_rtl.c
 @@ -8,6 +8,7 @@
   */
@@ -4641,9 +4366,9 @@ index 9760735..1f5cc05 100644
  VOID __stdcall xbox_RtlInitializeCriticalSection(PRTL_CRITICAL_SECTION CriticalSection)
  {
      /* Creating the shadow here is not required -- Enter does it -- but doing
-diff --git c/src/kernel/kernel_thunks.c w/src/kernel/kernel_thunks.c
+diff --git i/src/kernel/kernel_thunks.c w/src/kernel/kernel_thunks.c
 index 4fd7692..d943575 100644
---- c/src/kernel/kernel_thunks.c
+--- i/src/kernel/kernel_thunks.c
 +++ w/src/kernel/kernel_thunks.c
 @@ -18,6 +18,7 @@
   */
@@ -4662,9 +4387,9 @@ index 4fd7692..d943575 100644
              if (entry == 0) {
                  break;  /* rest of the table is empty */
              }
-diff --git c/src/kernel/kernel_xbox.c w/src/kernel/kernel_xbox.c
+diff --git i/src/kernel/kernel_xbox.c w/src/kernel/kernel_xbox.c
 index 4ebdfb9..2134e8a 100644
---- c/src/kernel/kernel_xbox.c
+--- i/src/kernel/kernel_xbox.c
 +++ w/src/kernel/kernel_xbox.c
 @@ -11,6 +11,9 @@
  
@@ -4837,114 +4562,9 @@ index 4ebdfb9..2134e8a 100644
      default:
          xbox_log(XBOX_LOG_WARN, XBOX_LOG_XBOX,
              "ExQueryNonVolatileSetting: unhandled index 0x%02X", ValueIndex);
-diff --git c/src/kernel/nv2a_backend.h w/src/kernel/nv2a_backend.h
-new file mode 100644
-index 0000000..2102f59
---- /dev/null
-+++ w/src/kernel/nv2a_backend.h
-@@ -0,0 +1,99 @@
-+/**
-+ * Pluggable GPU backend for the pushbuffer executor.
-+ *
-+ * The executor parses the pushbuffer, tracks state and runs vertex programs.
-+ * With a backend registered it hands the rasterising to it instead of
-+ * drawing pixels itself. The backend is optional: with none set, nothing
-+ * here is used.
-+ */
-+#ifndef XBOXRECOMP_NV2A_BACKEND_H
-+#define XBOXRECOMP_NV2A_BACKEND_H
-+
-+#include <stdint.h>
-+#include <stdio.h>
-+#include "nv2a_vsh_interp.h"
-+#include "nv2a_combiner.h"
-+
-+typedef struct {
-+    uint32_t color_offset;          /* guest address of the colour surface */
-+    uint32_t pitch;
-+    uint32_t x, y, width, height;   /* clip rectangle */
-+    uint32_t bpp;                   /* 2 or 4 */
-+    int      swizzled;              /* render target stored Morton-swizzled */
-+    uint32_t zeta_offset;
-+    uint32_t zmax;                  /* 0xFFFF (Z16) or 0xFFFFFF (Z24S8) */
-+    int      depth_test, depth_write;
-+    uint32_t depth_func;            /* GL enum, as the NV2A takes it */
-+    int      w_buffer;              /* CONTROL0 Z_PERSPECTIVE: depth is w, not z */
-+    /* Stencil (Z24S8 only): STENCIL_TEST_ENABLE and 0x0360..0x0378 -- write
-+     * mask, func (GL enum), ref, read mask, op fail / zfail / zpass (GL
-+     * enums: KEEP 0x1E00, ZERO 0, REPLACE 0x1E01, INCRSAT 0x1E02, DECRSAT
-+     * 0x1E03, INVERT 0x150A, INCR 0x8507, DECR 0x8508); stencil_clear is
-+     * the ZSTENCIL_CLEAR_VALUE's stencil byte. */
-+    int      stencil_test;
-+    uint32_t stencil_write_mask, stencil_func, stencil_ref, stencil_read_mask;
-+    uint32_t stencil_fail, stencil_zfail, stencil_zpass, stencil_clear;
-+    /* Per-pixel state (GL enums as the NV2A takes them). */
-+    int      blend_enable;
-+    uint32_t blend_sfactor, blend_dfactor, blend_equation, blend_color; /* ARGB */
-+    uint32_t color_mask;            /* A<<24 R<<16 G<<8 B, non-zero byte = write */
-+    int      alpha_test;
-+    uint32_t alpha_func, alpha_ref;
-+    Nv2aCombiner rc;
-+    int      rc_seen;               /* combiners programmed by the title */
-+    uint32_t fog_enable, fog_mode, fog_color;   /* fog_color: FOG_COLOR as written (R in bits 0-7) */
-+    float    fog_param[2];
-+    /* Points: size in pixels (SET_POINT_SIZE / 8, 1 if unset), used unless
-+     * point_params (then the program's oPts.x); point_sprite = stage 3
-+     * coordinates come from the position inside the point. */
-+    float    point_size;
-+    int      point_params, point_sprite;
-+} Nv2aTarget;
-+
-+typedef struct {
-+    int      valid;
-+    uint32_t offset, width, height;
-+    uint32_t addr_u, addr_v;        /* 1 wrap 2 mirror 3 clamp 4 border 5 clamp-to-edge */
-+    int      linear_filter;         /* magnification */
-+    int      normalised;            /* swizzled/DXT: coords normalised; else texels */
-+    uint32_t format;                /* NV097 colour format code */
-+    uint32_t stage_program;         /* SET_SHADER_STAGE_PROGRAM, 5 bits per stage */
-+    uint64_t hash;                  /* of the base level's bytes (this frame) */
-+    int      cube;                  /* cube map: decoded as six faces stacked, +X -X +Y -Y +Z -Z */
-+} Nv2aTexInfo;
-+
-+/* Texture stage description, and mip 0 decoded to A8R8G8B8 (width*height
-+ * dwords; a cube map width*height*6, the faces one below the other). Both
-+ * return 0 if the stage is unusable. */
-+int nv2a_exec_tex_info(int stage, Nv2aTexInfo *info);
-+int nv2a_exec_tex_decode(int stage, uint32_t *out);
-+
-+/* Trace aid: the current batch's program, constants and vertex inputs. */
-+void nv2a_exec_dump_batch(FILE *f, uint32_t max_vertices);
-+
-+#define NV2A_CLEAR_Z      0x01
-+#define NV2A_CLEAR_STENCIL 0x02
-+#define NV2A_CLEAR_COLOR  0xF0
-+
-+typedef struct {
-+    /* One draw call after the vertex program: n vertices, assembled
-+     * according to prim (NV097 primitive code). Return 1 if consumed. */
-+    int  (*draw)(const Nv2aTarget *t, uint32_t prim, const Nv2aVshOutput *v, uint32_t n);
-+    /* CLEAR_SURFACE; argb and depth are already decoded (depth 0..1). */
-+    /* Return 1 if consumed (else the executor clears guest memory itself). */
-+    int  (*clear)(const Nv2aTarget *t, uint32_t flags, uint32_t argb, float depth);
-+    /* A finished frame is being presented from t: the backend must have
-+     * written it into guest memory (A8R8G8B8 / R5G6B5 at color_offset). */
-+    void (*flip)(const Nv2aTarget *t);
-+    /* Optional: the same draw with the vertex program left to the backend
-+     * (run on the GPU). in: n vertices of p->nin float4 inputs each (packed
-+     * by p->in_slot), in draw order. Return 1 if consumed; 0 and the
-+     * executor runs the program itself and calls draw. Not offered when the
-+     * program writes constants (vertex order matters then). */
-+    int  (*draw_vsh)(const Nv2aTarget *t, uint32_t prim, const float *in, uint32_t n,
-+                     const Nv2aVshProgram *p);
-+} Nv2aBackend;
-+
-+void nv2a_exec_set_backend(const Nv2aBackend *b);
-+
-+#endif
-diff --git c/src/kernel/nv2a_pb_exec.c w/src/kernel/nv2a_pb_exec.c
-index c65632c..35cb429 100644
---- c/src/kernel/nv2a_pb_exec.c
+diff --git i/src/kernel/nv2a_pb_exec.c w/src/kernel/nv2a_pb_exec.c
+index c65632c..15e57a4 100644
+--- i/src/kernel/nv2a_pb_exec.c
 +++ w/src/kernel/nv2a_pb_exec.c
 @@ -25,6 +25,7 @@
   * <prefix>NNN.bmp, so the result can be looked at without a display.
@@ -6506,11 +6126,27 @@ index c65632c..35cb429 100644
      default:
          break;
      }
-@@ -2910,10 +3900,18 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -2910,10 +3900,34 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
          return;
      }
      if (subch != 0) {                      /* 3D class lives on subchannel 0 */
 -        note_unhandled(method, param);
++        /* The one 2D-class method with an effect the title reads back:
++         * NV044 (context pattern) SET_MONOCHROME_COLOR0 writes
++         * PGRAPH_PATT_COLOR0 (0x400B10), which D3D uses as its GPU progress
++         * marker (xemu pgraph.c). XDK 5849's D3D packs the fence sequence
++         * into bits 2-6 and spins until they match (SSX On Tour 0x002BB570).
++         * 0x0310 is another method in other classes (NV039 OFFSET_OUT), so
++         * only the subchannel whose bound object is class 0x44 counts. */
++        static uint32_t subch_class[8];
++        extern uint32_t xbox_Nv2aObjectClass(uint32_t handle);
++        extern void xbox_Nv2aPatternColor0(uint32_t value);
++        if (subch < 8 && method == 0x0000)
++            subch_class[subch] = xbox_Nv2aObjectClass(param);
++        else if (subch < 8 && method == 0x0310 && subch_class[subch] == 0x44) {
++            xbox_Nv2aPatternColor0(param);
++            return;
++        }
 +        note_unhandled(method | (subch << 16), param);
          return;
      }
@@ -6526,7 +6162,7 @@ index c65632c..35cb429 100644
      case NV097_SET_SURFACE_CLIP_HORIZONTAL:
          s_gpu.clip_x = param & 0xFFFF;
          s_gpu.clip_w = (param >> 16) & 0xFFFF;
-@@ -2925,6 +3923,14 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -2925,6 +3939,14 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
      case NV097_SET_SURFACE_FORMAT:
          s_gpu.format = param;
          break;
@@ -6541,7 +6177,7 @@ index c65632c..35cb429 100644
      case NV097_SET_SURFACE_PITCH:
          s_gpu.pitch = param & 0xFFFF;      /* colour pitch; zeta is the top half */
          break;
-@@ -2960,6 +3966,11 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -2960,6 +3982,11 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
  
      /* Alpha test and fog. */
      case 0x0300: s_gpu.alpha_test = param; break;
@@ -6553,7 +6189,7 @@ index c65632c..35cb429 100644
      case 0x033C: s_gpu.alpha_func = param; break;
      case 0x0340: s_gpu.alpha_ref = param; break;
      case 0x02A4: s_gpu.fog_enable = param; break;
-@@ -2984,9 +3995,9 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -2984,9 +4011,9 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
          uint8_t *mem = (uint8_t *)xbox_GetMemoryOffset();
          uint32_t at = dma_resolve(param & 0x00FFFFFFu);
          uint64_t stamp = (uint64_t)s_gpu.reports++ * 1000u;
@@ -6566,7 +6202,7 @@ index c65632c..35cb429 100644
          break;
      }
      case NV097_SET_BLEND_COLOR:
-@@ -3052,6 +4063,18 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3052,6 +4079,18 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
  
          if (!s_gpu.prim)
              break;
@@ -6585,7 +6221,7 @@ index c65632c..35cb429 100644
          for (i = 0; i < count && s_gpu.idx_count < NV_MAX_INDICES; i++)
              s_gpu.idx[s_gpu.idx_count++] = (uint16_t)(start + i);
          break;
-@@ -3065,6 +4088,17 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3065,6 +4104,17 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
          }
          break;
  
@@ -6603,7 +6239,7 @@ index c65632c..35cb429 100644
      case NV097_SET_FLIP_READ:
          if (s_ftrace == 2)
              fprintf(stderr, "[FTRACE] P_READ %u%c", param, 10);
-@@ -3119,6 +4153,13 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3119,6 +4169,13 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
                                                 : s_gpu.color_offset;
              uint32_t pitch = s_gpu.drawn_offset ? s_gpu.drawn_pitch
                                                  : s_gpu.pitch;
@@ -6617,7 +6253,7 @@ index c65632c..35cb429 100644
              if (done) {
                  xbox_FramebufferWindowSet(dma_resolve(done), pitch);
                  xbox_FramebufferWindowPresent(dma_resolve(done), pitch);
-@@ -3178,9 +4219,20 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3178,9 +4235,20 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
      /* Depth. */
      case 0x030C: s_gpu.depth_test = param; break; /* DEPTH_TEST_ENABLE */
      case 0x0354: s_gpu.depth_func = param; break; /* DEPTH_FUNC */
@@ -6638,7 +6274,7 @@ index c65632c..35cb429 100644
  
      default:
          if (method >= 0x0260 && method < 0x0280) {         /* ALPHA_ICW(i) */
-@@ -3220,6 +4272,21 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3220,6 +4288,21 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
              nv2a_vsh_constant_component(58, (method - 0x0AF0) / 4, param);
              break;
          }
@@ -6660,7 +6296,7 @@ index c65632c..35cb429 100644
          if (method >= 0x0B00 && method < 0x0B80) {    /* TRANSFORM_PROGRAM(i) */
              nv2a_vsh_program_word(param);
              break;
-@@ -3354,7 +4421,7 @@ static void peek_addresses(void)
+@@ -3354,7 +4437,7 @@ static void peek_addresses(void)
          float f;
          if (va < 0x1000u || va >= 0x04000000u)
              continue;
@@ -6669,7 +6305,7 @@ index c65632c..35cb429 100644
          memcpy(&f, &v, 4);
          fprintf(stderr, "  [PEEK] 0x%08X = %08X  (%g)\n", va, v, f);
      }
-@@ -3392,7 +4459,7 @@ static void peek_chain(void)
+@@ -3392,7 +4475,7 @@ static void peek_chain(void)
                                  " pointer -- chain ends\n", step, cur);
                  return;
              }
@@ -6678,7 +6314,7 @@ index c65632c..35cb429 100644
              fprintf(stderr, "  [CHAIN] step %d: deref +0x%X -> 0x%08X\n",
                      step, off, cur);
          }
-@@ -3400,12 +4467,13 @@ static void peek_chain(void)
+@@ -3400,12 +4483,13 @@ static void peek_chain(void)
      }
      if (cur >= 0x1000u && cur + 4 < 0x04000000u)
          fprintf(stderr, "  [CHAIN] final value at 0x%08X = 0x%08X\n",
@@ -6693,7 +6329,7 @@ index c65632c..35cb429 100644
      peek_addresses();
      peek_chain();
      if (getenv("RECOMP_FIND_NAN")) {
-@@ -3534,10 +4602,157 @@ void nv2a_pb_exec_report(void)
+@@ -3534,10 +4618,157 @@ void nv2a_pb_exec_report(void)
               * is using. */
              union { uint32_t u; float f; } v;
              v.u = s_unhandled[i].last_param;
@@ -6852,9 +6488,9 @@ index c65632c..35cb429 100644
 +        fputc('\n', f);
 +    }
 +}
-diff --git c/src/kernel/nv2a_pb_scan.c w/src/kernel/nv2a_pb_scan.c
+diff --git i/src/kernel/nv2a_pb_scan.c w/src/kernel/nv2a_pb_scan.c
 index 65bbedb..410e2df 100644
---- c/src/kernel/nv2a_pb_scan.c
+--- i/src/kernel/nv2a_pb_scan.c
 +++ w/src/kernel/nv2a_pb_scan.c
 @@ -1,3 +1,5 @@
 +#include "kernel.h"
@@ -7085,9 +6721,9 @@ index 65bbedb..410e2df 100644
  {
      uint32_t words, jumps = 0, unknown = 0;
  
-diff --git c/src/kernel/nv2a_vsh_interp.c w/src/kernel/nv2a_vsh_interp.c
+diff --git i/src/kernel/nv2a_vsh_interp.c w/src/kernel/nv2a_vsh_interp.c
 index 7fae74c..53faba3 100644
---- c/src/kernel/nv2a_vsh_interp.c
+--- i/src/kernel/nv2a_vsh_interp.c
 +++ w/src/kernel/nv2a_vsh_interp.c
 @@ -39,6 +39,7 @@ static float    s_const[NV2A_VSH_CONSTANTS][4];
  static uint32_t s_load_slot, s_load_word, s_start_slot;
@@ -7528,9 +7164,9 @@ index 7fae74c..53faba3 100644
              memcpy(out->fog, outregs[5], sizeof out->fog);
              memcpy(out->tex[0], outregs[9], sizeof out->tex[0]);
              memcpy(out->tex[1], outregs[10], sizeof out->tex[1]);
-diff --git c/src/kernel/nv2a_vsh_interp.h w/src/kernel/nv2a_vsh_interp.h
+diff --git i/src/kernel/nv2a_vsh_interp.h w/src/kernel/nv2a_vsh_interp.h
 index 8acb0af..aa6c0e8 100644
---- c/src/kernel/nv2a_vsh_interp.h
+--- i/src/kernel/nv2a_vsh_interp.h
 +++ w/src/kernel/nv2a_vsh_interp.h
 @@ -43,12 +43,35 @@ void nv2a_vsh_set_start_slot(uint32_t slot);          /* _PROGRAM_START     */
  void nv2a_vsh_set_constant_load(uint32_t index);      /* _CONSTANT_LOAD     */
@@ -7568,9 +7204,9 @@ index 8acb0af..aa6c0e8 100644
  
  /* Direct access, for the self-test. */
  void nv2a_vsh_set_constant(uint32_t index, const float v[4]);
-diff --git c/src/kernel/recomp_trace.c w/src/kernel/recomp_trace.c
+diff --git i/src/kernel/recomp_trace.c w/src/kernel/recomp_trace.c
 index 0b2d723..f612ac4 100644
---- c/src/kernel/recomp_trace.c
+--- i/src/kernel/recomp_trace.c
 +++ w/src/kernel/recomp_trace.c
 @@ -12,6 +12,7 @@
   */
@@ -7633,9 +7269,9 @@ index 0b2d723..f612ac4 100644
          fputc('\n', stderr);
      fflush(stderr);
  }
-diff --git c/src/kernel/xbox_memory_layout.c w/src/kernel/xbox_memory_layout.c
-index 72d5131..2ae386e 100644
---- c/src/kernel/xbox_memory_layout.c
+diff --git i/src/kernel/xbox_memory_layout.c w/src/kernel/xbox_memory_layout.c
+index 72d5131..20326f6 100644
+--- i/src/kernel/xbox_memory_layout.c
 +++ w/src/kernel/xbox_memory_layout.c
 @@ -191,11 +191,11 @@ static const struct { uint32_t offset; uint32_t busy_mask; } NV2A_ACK[] = {
       *
@@ -7749,7 +7385,7 @@ index 72d5131..2ae386e 100644
      }
  }
  
-@@ -776,37 +793,72 @@ static void frame_counters_tick(void)
+@@ -776,37 +793,112 @@ static void frame_counters_tick(void)
  
          if (!fence_readable(g_frame_counters[i].device_ptr_va, 4))
              continue;
@@ -7783,11 +7419,51 @@ index 72d5131..2ae386e 100644
 +    return on;
 +}
 +
++/* Set once the title writes PATT_COLOR0 itself (xbox_Nv2aPatternColor0):
++ * from then on that register holds what the title put there, and the
++ * semaphore copy below no longer stands in for it. */
++static volatile int g_patt_color0_seen;
++
++void xbox_Nv2aPatternColor0(uint32_t value)
++{
++    g_patt_color0_seen = 1;
++    if (g_nv2a_memory)
++        *(volatile uint32_t *)((char *)g_nv2a_memory + 0x400B10) = value;
++}
++
++/* The class of the graphics object bound under `handle`: the title's own
++ * RAMHT (NV_PFIFO_RAMHT 0x2210 gives its PRAMIN base and size; entries are
++ * {handle, context}, context bits 0-15 the instance in 16-byte units) and
++ * the class in the instance's first word. A scan, not the hash: this runs
++ * only when a subchannel is bound. 0 when not found. */
++uint32_t xbox_Nv2aObjectClass(uint32_t handle)
++{
++    const uint8_t *nv = (const uint8_t *)g_nv2a_memory;
++    uint32_t ramht, base, size, i;
++
++    if (!nv)
++        return 0;
++    ramht = *(const volatile uint32_t *)(nv + 0x2210);
++    base = ((ramht >> 4) & 0x1F) << 12;
++    size = 1u << (((ramht >> 16) & 3) + 12);
++    for (i = 0; i + 8 <= size; i += 8) {
++        uint32_t h = *(const volatile uint32_t *)(nv + 0x700000 + base + i);
++        uint32_t ctx = *(const volatile uint32_t *)(nv + 0x700000 + base + i + 4);
++        if (h == handle && ctx) {
++            uint32_t inst = (ctx & 0xFFFFu) << 4;
++            if (inst + 4 > 0x100000)
++                return 0;
++            return *(const volatile uint32_t *)(nv + 0x700000 + inst) & 0xFFu;
++        }
++    }
++    return 0;
++}
++
 +void xbox_Nv2aSemaphoreRelease(uint32_t value)
 +{
 +    if (!nv2a_async())
 +        return;
-+    if (g_nv2a_memory)
++    if (g_nv2a_memory && !g_patt_color0_seen)
 +        *(volatile uint32_t *)((char *)g_nv2a_memory + 0x400B10) = value;
      for (int i = 0; i < g_fence_mirror_count; i++) {
          uint32_t dev, get_ptr;
@@ -7834,7 +7510,7 @@ index 72d5131..2ae386e 100644
              if (*fence != put)
                  *fence = put;
          }
-@@ -860,7 +912,7 @@ static void framebuffer_probe_tick(void)
+@@ -860,7 +952,7 @@ static void framebuffer_probe_tick(void)
      last_ms = now;
      if ((size_t)s_fb_va + s_fb_pitch * s_fb_height > g_memory_size)
          return;
@@ -7843,7 +7519,7 @@ index 72d5131..2ae386e 100644
      n = (s_fb_pitch * s_fb_height) / 4;
      for (i = 0; i < n; i++) {
          sum = sum * 33u + p[i];
-@@ -873,6 +925,147 @@ static void framebuffer_probe_tick(void)
+@@ -873,6 +965,147 @@ static void framebuffer_probe_tick(void)
      fflush(stderr);
  }
  
@@ -7991,7 +7667,7 @@ index 72d5131..2ae386e 100644
  static DWORD WINAPI nv2a_ack_thread(LPVOID param)
  {
      volatile uint32_t *regs = (volatile uint32_t *)param;
-@@ -931,6 +1124,49 @@ static DWORD WINAPI nv2a_ack_thread(LPVOID param)
+@@ -931,6 +1164,49 @@ static DWORD WINAPI nv2a_ack_thread(LPVOID param)
              static uint32_t last_put;
              DWORD now_ms = GetTickCount();
              uint32_t put = *(volatile uint32_t *)((char *)regs + NV2A_USER_DMA_PUT);
@@ -8041,7 +7717,7 @@ index 72d5131..2ae386e 100644
              if (put != last_put || (now_ms - last_put_ms) > 2000) {
                  /* Survey the segment the title just submitted, once. */
                  {
-@@ -1034,8 +1270,10 @@ static DWORD WINAPI nv2a_ack_thread(LPVOID param)
+@@ -1034,8 +1310,10 @@ static DWORD WINAPI nv2a_ack_thread(LPVOID param)
              static uint32_t last_start = 0xFFFFFFFFu;
              uint32_t start = *(volatile uint32_t *)((char *)regs + 0x600800);
              if (start != last_start) {
@@ -8053,7 +7729,7 @@ index 72d5131..2ae386e 100644
                  fflush(stderr);
              }
          }
-@@ -1054,21 +1292,59 @@ static DWORD WINAPI nv2a_ack_thread(LPVOID param)
+@@ -1054,21 +1332,59 @@ static DWORD WINAPI nv2a_ack_thread(LPVOID param)
           * up XNet. A live clock is also just the truth -- KeTickCount ticks on
           * hardware whether or not anyone is asleep. GetTickCount() shares the
           * millisecond unit, so the rate matches. */
@@ -8115,7 +7791,7 @@ index 72d5131..2ae386e 100644
      if (g_nv2a_ack_thread) {
          fprintf(stderr, "  NV2A busy-bit ack: %zu register(s) acknowledged\n",
                  sizeof(NV2A_ACK) / sizeof(NV2A_ACK[0]));
-@@ -1237,15 +1513,15 @@ int recomp_guest_longjmp(uint32_t buf_va, uint32_t value)
+@@ -1237,15 +1553,15 @@ int recomp_guest_longjmp(uint32_t buf_va, uint32_t value)
          /* The callee-saved registers and the stack, exactly as the CRT's
           * longjmp restores them: esp is the setjmp-time esp plus the return
           * address that setjmp's own ret would have popped. */
@@ -8136,7 +7812,7 @@ index 72d5131..2ae386e 100644
          g_ebp     = g_seh_ebp;
  
          s_jmp_used = i + 1;   /* the inner buffers died with their frames */
-@@ -1344,7 +1620,7 @@ static int watch_is_code(uint32_t va)
+@@ -1344,7 +1660,7 @@ static int watch_is_code(uint32_t va)
  static void watch_report(void)
  {
      const uint8_t *mem = (const uint8_t *)g_memory_offset;
@@ -8145,7 +7821,7 @@ index 72d5131..2ae386e 100644
      uint32_t esp = g_esp, i, shown = 0;
  
      if (now == g_watch_last)
-@@ -1362,7 +1638,7 @@ static void watch_report(void)
+@@ -1362,7 +1678,7 @@ static void watch_report(void)
          uint32_t v;
          if (!peek_readable(slot))
              break;
@@ -8154,7 +7830,7 @@ index 72d5131..2ae386e 100644
          if (watch_is_code(v)) {
              fprintf(stderr, "         [esp+%-4u] %08X\n", i * 4u, v);
              shown++;
-@@ -1379,7 +1655,7 @@ static void watch_report(void)
+@@ -1379,7 +1695,7 @@ static void watch_report(void)
              if (!peek_readable(slot))
                  break;
              fprintf(stderr, "         raw[esp+%-4u] %08X\n", i * 4u,
@@ -8163,7 +7839,7 @@ index 72d5131..2ae386e 100644
          }
      }
      fflush(stderr);
-@@ -1387,6 +1663,10 @@ static void watch_report(void)
+@@ -1387,6 +1703,10 @@ static void watch_report(void)
  
  static LONG CALLBACK watch_veh(PEXCEPTION_POINTERS ep)
  {
@@ -8174,7 +7850,7 @@ index 72d5131..2ae386e 100644
      DWORD code = ep->ExceptionRecord->ExceptionCode;
      DWORD old;
  
-@@ -1415,6 +1695,7 @@ static LONG CALLBACK watch_veh(PEXCEPTION_POINTERS ep)
+@@ -1415,6 +1735,7 @@ static LONG CALLBACK watch_veh(PEXCEPTION_POINTERS ep)
          }
      }
      return EXCEPTION_CONTINUE_SEARCH;
@@ -8182,7 +7858,7 @@ index 72d5131..2ae386e 100644
  }
  
  /* The target, which may be reached through pointers that do not exist yet.
-@@ -1437,7 +1718,7 @@ static int watch_resolve(uint32_t *out)
+@@ -1437,7 +1758,7 @@ static int watch_resolve(uint32_t *out)
      for (k = 0; k < g_watch_derefs; k++) {
          if (!peek_readable(a))
              return 0;
@@ -8191,7 +7867,7 @@ index 72d5131..2ae386e 100644
          if (!a)
              return 0;
      }
-@@ -1506,11 +1787,9 @@ static int watch_arm(uint32_t va)
+@@ -1506,11 +1827,9 @@ static int watch_arm(uint32_t va)
                          "not armed\n", g_watch_va);
          return 0;
      }
@@ -8205,7 +7881,7 @@ index 72d5131..2ae386e 100644
      g_watch_veh = AddVectoredExceptionHandler(1, watch_veh);
      if (!g_watch_veh
              || !VirtualProtect(g_watch_page, 4096, PAGE_READONLY, &old)) {
-@@ -1564,13 +1843,13 @@ void xbox_PeekSample(const char *label)
+@@ -1564,13 +1883,13 @@ void xbox_PeekSample(const char *label)
              end++;
          a = (uint32_t)va;
          for (k = 0; k < derefs && ok; k++) {
@@ -8221,7 +7897,7 @@ index 72d5131..2ae386e 100644
          else
              fprintf(stderr, " [%08X]=??", a);
          q = (*end == ',') ? end + 1 : end;
-@@ -1651,7 +1930,7 @@ static DWORD WINAPI xbox_watchdog_thread(LPVOID unused)
+@@ -1651,7 +1970,7 @@ static DWORD WINAPI xbox_watchdog_thread(LPVOID unused)
          uint32_t a = esp + i * 4;
          if (a < XBOX_STACK_BASE || a >= XBOX_STACK_TOP) break;
          fprintf(stderr, "    GS %08X %08X\n", a,
@@ -8230,7 +7906,7 @@ index 72d5131..2ae386e 100644
      }
      fflush(stderr);
      _exit(3);
-@@ -1704,6 +1983,10 @@ volatile uint32_t g_icall_trace[16] = {0};
+@@ -1704,6 +2023,10 @@ volatile uint32_t g_icall_trace[16] = {0};
  volatile uint32_t g_icall_trace_idx = 0;
  volatile uint64_t g_icall_count = 0;
  
@@ -8241,7 +7917,7 @@ index 72d5131..2ae386e 100644
  BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
  {
      g_force_return = getenv("RECOMP_FORCE_RETURN") != NULL;
-@@ -1739,6 +2022,15 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -1739,6 +2062,15 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
       * With file mapping views, we create aliased mappings at 64 MB intervals
       * that all point to the same physical memory.
       */
@@ -8257,7 +7933,7 @@ index 72d5131..2ae386e 100644
      g_mapping_handle = CreateFileMappingA(
          INVALID_HANDLE_VALUE,   /* page file backed */
          NULL,                   /* default security */
-@@ -1790,7 +2082,14 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -1790,7 +2122,14 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
           * this on Windows needs placeholder reservations (VirtualAlloc2). */
  #ifndef _WIN32
          g_span_size = g_memory_size * (size_t)(1 + XBOX_NUM_MIRRORS);
@@ -8273,7 +7949,7 @@ index 72d5131..2ae386e 100644
          if (g_span_base) {
              VirtualFree(g_span_base, g_memory_size, MEM_RELEASE);
              g_memory_base = MapViewOfFileEx(g_mapping_handle,
-@@ -1826,6 +2125,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -1826,6 +2165,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
          }
      }
  
@@ -8281,7 +7957,7 @@ index 72d5131..2ae386e 100644
      if (!g_memory_base) {
          fprintf(stderr, "xbox_MemoryLayoutInit: failed to map base view (%zu KB)\n",
                  g_memory_size / 1024);
-@@ -1908,7 +2208,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -1908,7 +2248,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
       * Helper macro: convert Xbox VA to actual mapped address.
       * When g_memory_offset == 0 (ideal case), this is identity.
       */
@@ -8290,7 +7966,7 @@ index 72d5131..2ae386e 100644
  
      /*
       * Copy XBE header to base address.
-@@ -2088,7 +2388,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2088,7 +2428,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
               * slots, and kernel.h notes 366 is short by 12. A title importing
               * a high ordinal would have had its table truncated here. */
              for (uint32_t t = 0; t < XBOX_KERNEL_THUNK_TABLE_SIZE; t++) {
@@ -8299,7 +7975,7 @@ index 72d5131..2ae386e 100644
                  if (entry == 0) break;
                  thunk_count++;
              }
-@@ -2143,7 +2443,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2143,7 +2483,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
       * We use free space in the BSS area for the fake structures.
       */
      {
@@ -8308,7 +7984,7 @@ index 72d5131..2ae386e 100644
          #define MEM32_INIT(va, val) (*(uint32_t *)XBOX_VA(va) = (uint32_t)(val))
  
          /* Fake TIB at address 0x0 */
-@@ -2274,6 +2574,10 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2274,6 +2614,10 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
       */
      {
          uintptr_t contig_native = XBOX_CONTIG_BASE + g_memory_offset;
@@ -8319,7 +7995,7 @@ index 72d5131..2ae386e 100644
          g_contig_mapping = CreateFileMappingW(
              INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
              0, (DWORD)XBOX_CONTIG_SIZE, NULL);
-@@ -2288,6 +2592,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2288,6 +2632,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
                  MEM_RESERVE | MEM_COMMIT,
                  PAGE_READWRITE
              );
@@ -8327,7 +8003,7 @@ index 72d5131..2ae386e 100644
          if (g_contig_memory) {
              fprintf(stderr, "  Contiguous window: %u MB at Xbox VA 0x%08X\n",
                      XBOX_CONTIG_SIZE / (1024 * 1024), XBOX_CONTIG_BASE);
-@@ -2319,12 +2624,17 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2319,12 +2664,17 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
       */
      {
          uintptr_t nv2a_native = XBOX_NV2A_BASE + g_memory_offset;
@@ -8345,7 +8021,7 @@ index 72d5131..2ae386e 100644
          /* The pushbuffer survey rides on the same poll, so either
           * variable arms it. */
          s_nv2a_trace = getenv("RECOMP_NV2A_TRACE") != NULL
-@@ -2364,12 +2674,17 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2364,12 +2714,17 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
       */
      {
          uintptr_t mcpx_native = XBOX_MCPX_BASE + g_memory_offset;
@@ -8363,7 +8039,7 @@ index 72d5131..2ae386e 100644
          g_mcpx_regs = g_mcpx_memory;
          if (g_mcpx_memory) {
              /* AC'97 codec ready.
-@@ -2425,9 +2740,13 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2425,9 +2780,13 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
                   * memory keeps what the title writes. */
                  enum { APU_TRAP_BYTES = 0x00030000 };
                  DWORD old_protect;
@@ -8377,7 +8053,7 @@ index 72d5131..2ae386e 100644
                  if (g_apu_mmio_trapped)
                      fprintf(stderr, "  APU: 0x%08X..0x%08X trapped for MMIO"
                                      " (GP/EP DSP memory left as RAM)\n",
-@@ -2437,7 +2756,9 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2437,7 +2796,9 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
                      |= MCPX_AC97_CODEC_READY;
                  /* Before the trap is armed: this write would otherwise be
                   * the first thing to fault. */
@@ -8388,7 +8064,7 @@ index 72d5131..2ae386e 100644
                  fprintf(stderr, "  AC97: codec reported ready at 0x%08X"
                                  " (DirectSound will initialise)\n",
                          XBOX_MCPX_BASE + MCPX_AC97_CODEC_STATUS);
-@@ -2456,12 +2777,17 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2456,12 +2817,17 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
      {
          uintptr_t flash_native = XBOX_FLASH_BASE + g_memory_offset;
  
@@ -8406,7 +8082,7 @@ index 72d5131..2ae386e 100644
          if (g_flash_memory) {
              fprintf(stderr, "  Flash ROM aperture: %u MB at Xbox VA "
                      "0x%08X (zeroed, not a real BIOS image)\n",
-@@ -2494,7 +2820,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2494,7 +2860,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
          /* Already committed if the contiguous window above succeeded -
           * 0x80010000 sits inside it - so just use that storage. */
          g_kernel_memory = g_contig_memory
@@ -8415,7 +8091,7 @@ index 72d5131..2ae386e 100644
              : VirtualAlloc((LPVOID)kernel_native, KERNEL_PAGE_SIZE,
                             MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
          if (g_kernel_memory) {
-@@ -2532,6 +2858,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2532,6 +2898,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
       * intervals. All views alias the same physical pages, so reads and
       * writes at any mirror address correctly access the base data.
       */
@@ -8423,7 +8099,7 @@ index 72d5131..2ae386e 100644
      {
          int mirrors_ok = 0;
          /* The tiled aperture is a specific architectural alias -- physical RAM
-@@ -2644,11 +2971,9 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2644,11 +3011,9 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
               * startup line. */
              {
                  volatile uint32_t *via_tiled =
@@ -8437,7 +8113,7 @@ index 72d5131..2ae386e 100644
                  uint32_t saved = *via_contig;
  
                  *via_tiled = 0xA5C30F17u;
-@@ -2674,6 +2999,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
+@@ -2674,6 +3039,7 @@ BOOL xbox_MemoryLayoutInit(const void *xbe_data, size_t xbe_size)
          }
      }
  
@@ -8445,7 +8121,7 @@ index 72d5131..2ae386e 100644
      xbox_WatchInit();
      fprintf(stderr, "xbox_MemoryLayoutInit: complete\n");
      return TRUE;
-@@ -2834,6 +3160,26 @@ ptrdiff_t xbox_GetMemoryOffset(void)
+@@ -2834,6 +3200,26 @@ ptrdiff_t xbox_GetMemoryOffset(void)
      return g_memory_offset;
  }
  
@@ -8472,7 +8148,7 @@ index 72d5131..2ae386e 100644
  /* ── Dynamic heap allocator ────────────────────────────────
   *
   * Simple bump allocator for MmAllocateContiguousMemory and similar.
-@@ -2916,7 +3262,7 @@ static uint32_t heap_carve_free(uint32_t size, uint32_t alignment)
+@@ -2916,7 +3302,7 @@ static uint32_t heap_carve_free(uint32_t size, uint32_t alignment)
          g_heap_blocks[i].free = 0;
          if (back && !heap_insert_free(i + 1, start + size, back))
              g_heap_blocks[i].size += back;   /* table full: keep it attached */
@@ -8481,7 +8157,7 @@ index 72d5131..2ae386e 100644
          return start;
      }
      return 0;
-@@ -2957,7 +3303,7 @@ static int g_thread_stacks_used = 0;
+@@ -2957,7 +3343,7 @@ static int g_thread_stacks_used = 0;
  uint32_t xbox_AllocThreadTib(void)
  {
      /* XBOX_VA is scoped to the loader; the same arithmetic, spelled here. */
@@ -8490,7 +8166,30 @@ index 72d5131..2ae386e 100644
      const uint32_t tib_size = 0x40;
      uint32_t tib, block, thread_data, total;
  
-@@ -3153,7 +3499,7 @@ uint32_t xbox_ContiguousAlloc(uint32_t size, uint32_t alignment)
+@@ -3128,6 +3514,22 @@ uint32_t xbox_ContiguousAlloc(uint32_t size, uint32_t alignment)
+     }
+ 
+     if (!result) {
++        /* RECOMP_CONTIG_AVOID_IMAGE=1: start above the loaded image's pages,
++         * as the console's kernel does. The window and the image's RAM are
++         * separate storage here, so a block at an image page gives one
++         * physical number two meanings: SSX On Tour's XPP got its OHCI HCCA
++         * at physical 0x00202000, inside .text, and the controller read code
++         * as the interrupt table, so the pad never enumerated. Upstream
++         * (4f3307f) has the same switch for its page allocator; opt-in
++         * because it moves every block, and game glue names some by address. */
++        static int avoid = -1;
++        if (avoid < 0) {
++            const char *e = getenv("RECOMP_CONTIG_AVOID_IMAGE");
++            avoid = e && atoi(e) != 0;
++        }
++        if (avoid && g_xbox_image_hi
++                && g_contig_next < XBOX_CONTIG_BASE + ((g_xbox_image_hi + 4095u) & ~4095u))
++            g_contig_next = XBOX_CONTIG_BASE + ((g_xbox_image_hi + 4095u) & ~4095u);
+         result = (g_contig_next + alignment - 1) & ~(alignment - 1);
+ 
+         /* Leave the top of the window for GPU instance memory. */
+@@ -3153,7 +3555,7 @@ uint32_t xbox_ContiguousAlloc(uint32_t size, uint32_t alignment)
      if (reclaim)
          ReleaseSRWLockExclusive(&g_contig_lock);
  
@@ -8499,7 +8198,7 @@ index 72d5131..2ae386e 100644
      return result;
  }
  
-@@ -3267,7 +3613,7 @@ static uint32_t heap_alloc_locked(uint32_t size, uint32_t alignment)
+@@ -3267,7 +3669,7 @@ static uint32_t heap_alloc_locked(uint32_t size, uint32_t alignment)
              }
              g_heap_blocks[i].free = 0;
              result = g_heap_blocks[i].addr;
@@ -8508,7 +8207,7 @@ index 72d5131..2ae386e 100644
              return result;
          }
      }
-@@ -3313,7 +3659,7 @@ static uint32_t heap_alloc_locked(uint32_t size, uint32_t alignment)
+@@ -3313,7 +3715,7 @@ static uint32_t heap_alloc_locked(uint32_t size, uint32_t alignment)
      g_heap_next = result + size;
  
      /* Zero-fill the allocated block (Xbox memory is always zeroed) */
@@ -8517,9 +8216,9 @@ index 72d5131..2ae386e 100644
  
      if (g_heap_block_count < XBOX_HEAP_MAX_BLOCKS) {
          g_heap_blocks[g_heap_block_count].addr = result;
-diff --git c/src/kernel/xbox_memory_layout.h w/src/kernel/xbox_memory_layout.h
+diff --git i/src/kernel/xbox_memory_layout.h w/src/kernel/xbox_memory_layout.h
 index 53f9d3d..f826168 100644
---- c/src/kernel/xbox_memory_layout.h
+--- i/src/kernel/xbox_memory_layout.h
 +++ w/src/kernel/xbox_memory_layout.h
 @@ -211,6 +211,8 @@ void *xbox_GetMemoryBase(void);
   * Returns 0 if memory is mapped at original Xbox addresses (ideal case).
@@ -8538,9 +8237,9 @@ index 53f9d3d..f826168 100644
 +uint32_t xbox_TickCountMs(void);
 +
  #endif /* XBOX_MEMORY_LAYOUT_H */
-diff --git c/src/platform/win32_compat.c w/src/platform/win32_compat.c
+diff --git i/src/platform/win32_compat.c w/src/platform/win32_compat.c
 index 93288d5..6568214 100644
---- c/src/platform/win32_compat.c
+--- i/src/platform/win32_compat.c
 +++ w/src/platform/win32_compat.c
 @@ -35,8 +35,10 @@
  #include <mach/mach.h>
@@ -8627,9 +8326,9 @@ index 93288d5..6568214 100644
  #else
      struct sysinfo si;
      if (sysinfo(&si) != 0) return FALSE;
-diff --git c/src/platform/win32_compat.h w/src/platform/win32_compat.h
+diff --git i/src/platform/win32_compat.h w/src/platform/win32_compat.h
 index 22762ee..113f9e9 100644
---- c/src/platform/win32_compat.h
+--- i/src/platform/win32_compat.h
 +++ w/src/platform/win32_compat.h
 @@ -127,6 +127,8 @@ BOOL  DuplicateHandle(HANDLE srcProc, HANDLE src, HANDLE dstProc,
  HANDLE      w32_open_handle(int fd, const char *host_path);
@@ -8665,9 +8364,9 @@ index 22762ee..113f9e9 100644
  typedef struct _EXCEPTION_POINTERS
  {
      PEXCEPTION_RECORD ExceptionRecord;
-diff --git c/src/usb/ohci.c w/src/usb/ohci.c
+diff --git i/src/usb/ohci.c w/src/usb/ohci.c
 index 641a94d..63bec1f 100644
---- c/src/usb/ohci.c
+--- i/src/usb/ohci.c
 +++ w/src/usb/ohci.c
 @@ -7,6 +7,7 @@
   * that decides how the rest gets built.
@@ -8843,9 +8542,9 @@ index 641a94d..63bec1f 100644
  int xbox_OhciHandleMmio(void *ctx, uint32_t xbox_va)
  {
  #if defined(_WIN32)
-diff --git c/src/usb/ohci.h w/src/usb/ohci.h
+diff --git i/src/usb/ohci.h w/src/usb/ohci.h
 index 94ff7b2..2a01b28 100644
---- c/src/usb/ohci.h
+--- i/src/usb/ohci.h
 +++ w/src/usb/ohci.h
 @@ -40,6 +40,7 @@ int  xbox_OhciOwnsAddress(uint32_t xbox_va);
  /* Service a trapped access. Returns 1 if the faulting instruction was decoded
@@ -8855,9 +8554,9 @@ index 94ff7b2..2a01b28 100644
  
  /* Report counts at exit, so a run says whether the driver ever looked. */
  void xbox_OhciReport(void);
-diff --git c/src/usb/usb_gamepad.c w/src/usb/usb_gamepad.c
+diff --git i/src/usb/usb_gamepad.c w/src/usb/usb_gamepad.c
 index bd00f3f..8a4137a 100644
---- c/src/usb/usb_gamepad.c
+--- i/src/usb/usb_gamepad.c
 +++ w/src/usb/usb_gamepad.c
 @@ -442,6 +442,55 @@ static void pad_script_compact(unsigned long t)
      s_script_len = n;
@@ -8959,9 +8658,9 @@ index bd00f3f..8a4137a 100644
                  npending = 0;
              }
          } else if (npending < sizeof pending - 1) {
-diff --git c/src/usb/usb_gamepad.h w/src/usb/usb_gamepad.h
+diff --git i/src/usb/usb_gamepad.h w/src/usb/usb_gamepad.h
 index 18291d7..e0e9f01 100644
---- c/src/usb/usb_gamepad.h
+--- i/src/usb/usb_gamepad.h
 +++ w/src/usb/usb_gamepad.h
 @@ -41,6 +41,11 @@ int usb_gamepad_report(int pad, uint8_t *out, int max);
  uint8_t usb_gamepad_address(int pad);
@@ -8975,9 +8674,9 @@ index 18291d7..e0e9f01 100644
  /* Up to four pads, one per Xbox controller port. Pad n is driven by host
   * XInput pad n and by pad-script steps prefixed "p<n+1>-". */
  #define USB_GAMEPAD_MAX 4
-diff --git c/src/video/CMakeLists.txt w/src/video/CMakeLists.txt
+diff --git i/src/video/CMakeLists.txt w/src/video/CMakeLists.txt
 index 2189a3b..4b8e73a 100644
---- c/src/video/CMakeLists.txt
+--- i/src/video/CMakeLists.txt
 +++ w/src/video/CMakeLists.txt
 @@ -3,12 +3,19 @@ add_library(xbox_video STATIC
      video_player.c
@@ -9000,91 +8699,9 @@ index 2189a3b..4b8e73a 100644
 -    target_link_libraries(xbox_video PUBLIC mfplat mfreadwrite mfuuid mf ole32)
 +    target_link_libraries(xbox_video PUBLIC mfplat mfreadwrite mfuuid mf ole32 d3d11 dxgi)
  endif()
-diff --git c/src/video/fb_gamma.c w/src/video/fb_gamma.c
-new file mode 100644
-index 0000000..165eab0
---- /dev/null
-+++ w/src/video/fb_gamma.c
-@@ -0,0 +1,76 @@
-+/* The display's gamma ramp.
-+ *
-+ * Xbox D3D (SetGammaRamp; SSX 3's sub_00239B76) loads 256 R, G and B entries
-+ * into the NV2A's VGA palette (PRMDIO 0x6813C8 index, 0x6813C9 data, three
-+ * writes per entry), and the RAMDAC looks every scanned-out pixel up in it.
-+ * The emulated MMIO keeps no such table, so a title calls
-+ * xbox_FramebufferSetGammaRamp with the ramp it uploads and the presenters
-+ * apply it to the finished frame -- without it the picture is shown with a
-+ * linear ramp, lighter and flatter than on the console.
-+ * RECOMP_GAMMA=0 ignores the title's ramp. */
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+static uint8_t s_lut[3][256];
-+static volatile int s_lut_on;
-+static volatile unsigned s_lut_serial;     /* +1 per change, for the GPU presenter */
-+
-+void xbox_FramebufferSetGammaRamp(const uint8_t *r, const uint8_t *g, const uint8_t *b)
-+{
-+    static int allowed = -1, said;
-+    int i, identity = 1;
-+    if (allowed < 0) {
-+        const char *e = getenv("RECOMP_GAMMA");
-+        allowed = !(e && *e == '0');
-+    }
-+    for (i = 0; i < 256; i++)
-+        if (r[i] != i || g[i] != i || b[i] != i)
-+            identity = 0;
-+    if (!allowed || identity) {
-+        s_lut_on = 0;
-+        s_lut_serial++;
-+        return;
-+    }
-+    memcpy(s_lut[0], r, 256);
-+    memcpy(s_lut[1], g, 256);
-+    memcpy(s_lut[2], b, 256);
-+    s_lut_on = 1;
-+    s_lut_serial++;
-+    if (said < 4) {
-+        said++;
-+        fprintf(stderr, "[GAMMA] ramp loaded: r 0->%u 64->%u 128->%u 192->%u 255->%u"
-+                " (g 128->%u, b 128->%u)\n", r[0], r[64], r[128], r[192], r[255], g[128], b[128]);
-+    }
-+}
-+
-+/* Apply the ramp to n X8R8G8B8 pixels in place (no-op without one). */
-+void xbox_FramebufferApplyGamma(uint32_t *px, size_t n)
-+{
-+    size_t i;
-+    if (!s_lut_on)
-+        return;
-+    for (i = 0; i < n; i++) {
-+        uint32_t c = px[i];
-+        px[i] = (c & 0xFF000000u) | ((uint32_t)s_lut[0][(c >> 16) & 0xFF] << 16)
-+              | ((uint32_t)s_lut[1][(c >> 8) & 0xFF] << 8) | s_lut[2][c & 0xFF];
-+    }
-+}
-+
-+/* The ramp as 256 B8G8R8A8 texels (identity without one), for a presenter
-+ * that applies it on the GPU; returns its change serial. */
-+unsigned xbox_FramebufferGammaTexels(uint32_t *out256)
-+{
-+    int i;
-+    for (i = 0; i < 256; i++)
-+        out256[i] = s_lut_on ? 0xFF000000u | (uint32_t)s_lut[0][i] << 16
-+                               | (uint32_t)s_lut[1][i] << 8 | s_lut[2][i]
-+                             : 0xFF000000u | (uint32_t)i * 0x010101u;
-+    return s_lut_serial;
-+}
-+
-+unsigned xbox_FramebufferGammaSerial(void)
-+{
-+    return s_lut_serial;
-+}
-diff --git c/src/video/fb_present.c w/src/video/fb_present.c
+diff --git i/src/video/fb_present.c w/src/video/fb_present.c
 index 08bae4b..f12235a 100644
---- c/src/video/fb_present.c
+--- i/src/video/fb_present.c
 +++ w/src/video/fb_present.c
 @@ -15,12 +15,15 @@
   * Off unless RECOMP_FB_WINDOW is set.
@@ -9911,11 +9528,841 @@ index 08bae4b..f12235a 100644
 -void xbox_FramebufferWindowSetTitle(const uint16_t *n, int m) { (void)n; (void)m; }
 -void xbox_FramebufferWindowFrameStats(uint32_t draws) { (void)draws; }
  #endif
-diff --git c/src/video/fb_present_sdl.c w/src/video/fb_present_sdl.c
+diff --git i/src/video/video_player.h w/src/video/video_player.h
+index c844aef..bc4d39c 100644
+--- i/src/video/video_player.h
++++ w/src/video/video_player.h
+@@ -62,13 +62,26 @@ int  video_dump_frame_bmp(const char *path);
+  * zero when there is no window, which is the right answer: with nothing to
+  * focus there is nothing to type into. */
+ int xbox_FramebufferKeyDown(int vk);
++/* How many times that key went down (auto-repeat not counted) since the last
++ * call, which resets it. For hotkeys checked once a frame: a tap shorter than
++ * a frame, or one followed at once by a focus change (which clears the held
++ * state), still counts. */
++int xbox_FramebufferKeyPresses(int vk);
+ 
+ void xbox_FramebufferWindowStart(void);
+ void xbox_FramebufferWindowSet(uint32_t fb_va, uint32_t pitch);
+ int  xbox_FramebufferDumpBmp(const char *path);
++/* What the window shows (a renderer's published frame, gamma and overlay
++ * included where the presenter allows) as a BMP: the snapshot trigger's
++ * capture, callable from any thread. Written asynchronously by the window
++ * thread where the presenter captures its back buffer. */
++void xbox_FramebufferSnapshot(const char *path);
+ /* Title bar: "<XBE title> | FPS: n | draws: n". The name is the certificate's
+  * UTF-16 title (40 chars max); the stats come from each flip. */
+ void xbox_FramebufferWindowSetTitle(const uint16_t *name, int max_chars);
+ void xbox_FramebufferWindowFrameStats(uint32_t draws);
++/* The title's display gamma ramp (256 entries each), applied when presenting
++ * (fb_gamma.c). */
++void xbox_FramebufferSetGammaRamp(const uint8_t *r, const uint8_t *g, const uint8_t *b);
+ 
+ #endif /* BURNOUT3_VIDEO_PLAYER_H */
+diff --git i/templates/runtime/recomp_types.h w/templates/runtime/recomp_types.h
+index 8e9325e..e2089b0 100644
+--- i/templates/runtime/recomp_types.h
++++ w/templates/runtime/recomp_types.h
+@@ -410,6 +410,56 @@ void recomp_trace_esp(const char *name, const char *tag);
+  * uintptr_t cast preserves the overflow bits, landing us 4GB+ past
+  * our mapping and causing access violations.
+  */
++#if defined(__EMSCRIPTEN__)
++/*
++ * WebAssembly: one 32-bit linear memory holds the host and the guest, so the
++ * guest's 4 GB address space cannot be laid out 1:1 and aliased views (the
++ * low-RAM mirrors, contiguous window, tiled aperture) cannot exist. A page
++ * map with 1 MB granularity gives each guest MB its host delta instead:
++ * host = va + g_xbox_pagemap[va >> 20], modulo 2^32. Unmapped MBs share one
++ * scratch MB. Filled by xbox_MemoryLayoutInit (guest_wasm.c).
++ *
++ * There are no page faults either, so device registers (the MCPX span: APU,
++ * AC'97, USB) are checked for on every 8/16/32-bit access. Stores are
++ * explicit (STn, tools/explicit_stores.py) so MEMn can be an rvalue here --
++ * a store not rewritten is a compile error rather than an unchecked write.
++ */
++extern uint32_t g_xbox_pagemap[4096];
++#define XBOX_PTR(addr) ((uintptr_t)((uint32_t)(addr) + g_xbox_pagemap[(uint32_t)(addr) >> 20]))
++#define XBOX_IS_MMIO(a) ((uint32_t)((uint32_t)(a) - 0xFE800000u) < 0x00800000u)
++
++uint32_t xbox_mmio_read(uint32_t va, int size);
++void     xbox_mmio_write(uint32_t va, uint32_t val, int size);
++
++#define RECOMP_LDST(bits, T)                                                  \
++static inline T recomp_ld##bits(uint32_t a) {                                 \
++    if (__builtin_expect(XBOX_IS_MMIO(a), 0))                                 \
++        return (T)xbox_mmio_read(a, bits / 8);                                \
++    return *(volatile T *)XBOX_PTR(a);                                        \
++}                                                                             \
++static inline void recomp_st##bits(uint32_t a, T v) {                         \
++    if (__builtin_expect(XBOX_IS_MMIO(a), 0))                                 \
++        xbox_mmio_write(a, (uint32_t)v, bits / 8);                            \
++    else                                                                      \
++        *(volatile T *)XBOX_PTR(a) = v;                                       \
++}
++RECOMP_LDST(8, uint8_t)
++RECOMP_LDST(16, uint16_t)
++RECOMP_LDST(32, uint32_t)
++#undef RECOMP_LDST
++
++#define MEM8(addr)   recomp_ld8((uint32_t)(addr))
++#define MEM16(addr)  recomp_ld16((uint32_t)(addr))
++#define MEM32(addr)  recomp_ld32((uint32_t)(addr))
++#define SMEM8(addr)  ((int8_t)recomp_ld8((uint32_t)(addr)))
++#define SMEM16(addr) ((int16_t)recomp_ld16((uint32_t)(addr)))
++#define SMEM32(addr) ((int32_t)recomp_ld32((uint32_t)(addr)))
++#define SMEM64(addr) (*(volatile int64_t *)XBOX_PTR(addr))
++#define ST8(addr, v)  recomp_st8((uint32_t)(addr), (uint8_t)(v))
++#define ST16(addr, v) recomp_st16((uint32_t)(addr), (uint16_t)(v))
++#define ST32(addr, v) recomp_st32((uint32_t)(addr), (uint32_t)(v))
++#define ST64(addr, v) (*(volatile int64_t *)XBOX_PTR(addr) = (int64_t)(v))
++#else
+ #define XBOX_PTR(addr) ((uintptr_t)(uint32_t)(addr) + g_xbox_mem_offset)
+ 
+ /** Read/write N bytes at a flat Xbox memory address. */
+@@ -423,6 +473,15 @@ void recomp_trace_esp(const char *name, const char *tag);
+ #define SMEM32(addr) (*(volatile int32_t  *)XBOX_PTR(addr))
+ #define SMEM64(addr) (*(volatile int64_t  *)XBOX_PTR(addr))
+ 
++
++/** Explicit stores (tools/explicit_stores.py in the game project rewrites
++ * `MEMn(a) = v` into these; see the wasm branch above for why). */
++#define ST8(addr, v)  ((void)(MEM8(addr) = (uint8_t)(v)))
++#define ST16(addr, v) ((void)(MEM16(addr) = (uint16_t)(v)))
++#define ST32(addr, v) ((void)(MEM32(addr) = (uint32_t)(v)))
++#define ST64(addr, v) ((void)(SMEM64(addr) = (int64_t)(v)))
++#endif /* __EMSCRIPTEN__ */
++
+ /** Float/double memory access. */
+ #define MEMF(addr)   (*(volatile float    *)XBOX_PTR(addr))
+ #define MEMD(addr)   (*(volatile double   *)XBOX_PTR(addr))
+@@ -493,8 +552,8 @@ static inline RecompXmm XMM_MEM(uint32_t addr) {
+ }
+ 
+ static inline void XMM_STORE(uint32_t addr, RecompXmm v) {
+-    MEM32(addr)      = v.u[0]; MEM32(addr + 4)  = v.u[1];
+-    MEM32(addr + 8)  = v.u[2]; MEM32(addr + 12) = v.u[3];
++    ST32(addr, v.u[0]); ST32(addr + 4, v.u[1]);
++    ST32(addr + 8, v.u[2]); ST32(addr + 12, v.u[3]);
+ }
+ 
+ /* movlps/movhps move 8 bytes into or out of one half, leaving the
+@@ -512,8 +571,8 @@ static inline void recomp_xmm_load_half(RecompXmm *dst, uint32_t addr,
+ 
+ static inline void recomp_xmm_store_half(uint32_t addr, RecompXmm src,
+                                          int high) {
+-    MEM32(addr)     = src.u[high * 2];
+-    MEM32(addr + 4) = src.u[high * 2 + 1];
++    ST32(addr, src.u[high * 2]);
++    ST32(addr + 4, src.u[high * 2 + 1]);
+ }
+ 
+ /** movlhps: dst high = src low. */
+@@ -794,7 +853,7 @@ static inline uint16_t ROR16(uint16_t val, int n) {
+ #define PUSH32(sp, val) do { \
+     uint32_t _pv = (uint32_t)(val); \
+     (sp) -= 4; \
+-    MEM32(sp) = _pv; \
++    ST32(sp, _pv); \
+ } while(0)
+ 
+ /**
+@@ -1110,6 +1169,13 @@ extern volatile uint64_t g_icall_guard_misses;
+            recomp_icall_fail_log(_va); g_esp += 4; g_eax = 0; } \
+ } while(0)
+ 
++/* Preemption point at every loop head (emitted by tools/recomp). Counts
++ * iterations per thread and, every RECOMP_LOOP_QUANTUM of them, lets other
++ * guest threads have the guest CPU when the lock is on (kernel_bridge.c). */
++extern RECOMP_TLS int g_loop_budget;
++void recomp_loop_yield(void);
++#define RECOMP_LOOP_YIELD() do { if (--g_loop_budget < 0) recomp_loop_yield(); } while (0)
++
+ /* ================================================================
+  * Register name aliases for generated code
+  *
+diff --git i/tools/recomp/translator.py w/tools/recomp/translator.py
+index 3cd9250..0e9c350 100644
+--- i/tools/recomp/translator.py
++++ w/tools/recomp/translator.py
+@@ -1311,6 +1311,36 @@ class FunctionTranslator:
+                     return 0
+         return 0
+ 
++    def _stub_epilogue(self, addr, max_insns=8):
++        """The registers popped, then the `ret N` immediate, when the code at
++        `addr` is nothing but a function epilogue (`pop r32`* then `ret`).
++
++        Such an address is a branch target into another function's shared
++        exit -- `jne <epilogue>` from a switch arm that was split off as its
++        own function. A stub that only moves esp leaves every popped
++        callee-saved register holding the jumper's value, so its caller
++        carries on with the wrong esi/edi/ebx; SSX 3's Options menu crashed
++        that way. Returns None for anything else.
++        """
++        offset = va_to_file_offset(addr)
++        if offset is None or not self.xbe_data:
++            return None
++        window = self.xbe_data[offset:offset + max_insns * 3]
++        regs = []
++        try:
++            for insn in self.disasm._cs.disasm(window, addr):
++                mnemonic = insn.mnemonic.lower()
++                if mnemonic == "pop" and insn.op_str in (
++                        "eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"):
++                    regs.append(insn.op_str)
++                    continue
++                if mnemonic in ("ret", "retn"):
++                    return regs, (int(insn.op_str, 0) if insn.op_str else 0)
++                return None
++        except Exception:
++            return None
++        return None
++
+     def _read_local_jump_table(self, table_va, lower, upper,
+                                max_entries=256, min_entry_va=None):
+         """Read the contiguous pointer cluster around an indexed-jump base."""
+@@ -2027,6 +2057,10 @@ class FunctionTranslator:
+         self.lifter.imm_code_refs = imm_refs
+ 
+         # Build basic blocks
++        forced = getattr(self, "_forced_leaders", None)
++        if forced:
++            switch_leaders = set(switch_leaders or ()) | {
++                a for a in forced if start < a < end}
+         blocks = self.disasm.build_basic_blocks(
+             instructions, start, end,
+             extra_leaders=switch_leaders if switch_leaders else None,
+@@ -2058,6 +2092,57 @@ class FunctionTranslator:
+                     block.successors = []
+         return instructions, blocks
+ 
++    def entry_stub(self, addr, name):
++        """C for a call/jump target in the middle of another function.
++
++        tools.disasm sometimes splits one function in two (a switch arm, a
++        shared epilogue), so a jump between the halves becomes a call to an
++        address that is no function start. A stub that only returns skips that
++        code silently -- SSX 3's Options menu crashed on one, Equip Gear went
++        wrong on others. Instead: the containing function translated again
++        with `addr` forced to a block leader, renamed, entered with a goto.
++        Registers are the globals; ebp is the jumper's frame (g_seh_ebp, set
++        before every tail jump), exactly the state a guest jump arrives with.
++        Returns None when addr is not an instruction of a known function.
++        """
++        if not hasattr(self, "_entry_index"):
++            self._entry_index = sorted(
++                (a, info) for a, info in self.func_db.items())
++            self._entry_starts = [a for a, _ in self._entry_index]
++        import bisect as _bisect
++        i = _bisect.bisect_right(self._entry_starts, addr) - 1
++        if i < 0:
++            return None
++        fstart, finfo = self._entry_index[i]
++        fend = finfo.get("end") or fstart + finfo.get("size", 0)
++        recovered = self._recovered_cfg.get(fstart)
++        if recovered:
++            fend = recovered["end"]
++        if not (fstart < addr < fend):
++            return None
++        self._forced_leaders = {addr}
++        try:
++            code = self.translate_function(fstart, finfo)
++        except Exception:
++            code = None
++        finally:
++            self._forced_leaders = None
++        label = f"loc_{addr:08X}:"
++        if not code or label not in code:
++            return None
++        fname = _func_ident(fstart, finfo.get("name", f"sub_{fstart:08X}"))
++        head = f"void {fname}(void)"
++        if head not in code:
++            return None
++        code = code.replace(head, f"void {name}(void)", 1)
++        first = code.find("\nloc_")
++        if first < 0:
++            return None
++        frame = "    ebp = g_seh_ebp;\n" if "uint32_t ebp" in code[:first] else ""
++        entry = (f"\n    /* entered at 0x{addr:08X}, inside 0x{fstart:08X} */\n"
++                 f"{frame}    goto loc_{addr:08X};\n")
++        return code[:first] + entry + code[first:]
++
+     def translate_function(self, func_addr, func_info):
+         """
+         Translate a single function to C code.
+@@ -2495,6 +2580,15 @@ class FunctionTranslator:
+                 # otherwise produce `loc_X:` immediately before `}` and fail to
+                 # compile. The null statement costs nothing and is always valid.
+                 lines.append(f"loc_{bb.start:08X}: ;")
++                # A loop head: some block at or after this one jumps back here.
++                # The guest CPU lock (RECOMP_GUEST_LOCK) needs a preemption
++                # point there -- a guest thread polling another guest thread
++                # with no kernel call in the loop would otherwise hold the CPU
++                # forever; the console's scheduler would have switched on its
++                # quantum. RECOMP_LOOP_YIELD is a TLS countdown, cheap when
++                # the lock is off.
++                if any(p >= bb.start for p in preds.get(bb.start, ())):
++                    lines.append("RECOMP_LOOP_YIELD();")
+ 
+             # Inherit agreed state, including compatible CMP/TEST snapshots
+             # whose source operands differ between predecessor paths. The
+@@ -3020,11 +3114,19 @@ class BatchTranslator:
+ 
+         # Generate header with all forward declarations
+         header_path = os.path.join(output_dir, header_name)
++        # Stable across overrides: one declaration per function under the
++        # name its callers use (sub_X, also for a wrapped sub_X_gen body or a
++        # hand-written override), in address order, no counts. Every
++        # generated file includes this header, so a header that changed
++        # whenever an override or wrapper was added recompiled all of them
++        # (~18 min with MSVC) instead of the one file that holds the body.
++        # The sub_X_gen bodies need no declaration here: only the project's
++        # wrapper calls them, and it declares them itself.
+         header_lines = [
+             "/**",
+             f" * {_config.banner_name(getattr(self, 'title', None))}"
+             f" - Recompiled Function Declarations",
+-            f" * {stats['translated']} functions, auto-generated by tools/recomp",
++            " * auto-generated by tools/recomp",
+             " */",
+             "",
+             "#ifndef RECOMP_FUNCS_H",
+@@ -3033,17 +3135,17 @@ class BatchTranslator:
+             '#include "recomp_types.h"',
+             "",
+         ]
++        canonical = {}
+         for addr, name, _ in translations:
+-            decl = self._make_declaration(addr, name)
++            if name.endswith("_gen") and addr in manual_decls:
++                continue                    # declared below by its wrapper name
++            canonical[addr] = name
++        for addr, name in manual_decls.items():
++            canonical[addr] = name
++        for addr in sorted(canonical):
++            decl = self._make_declaration(addr, canonical[addr])
+             header_lines.append(f"{decl};")
+ 
+-        if manual_decls:
+-            header_lines.append("")
+-            header_lines.append("/* Hand-written overrides (defined by the project) */")
+-            for addr in sorted(manual_decls):
+-                header_lines.append(
+-                    f"void {manual_decls[addr]}(void);  /* 0x{addr:08X} */")
+-
+         if unresolved:
+             header_lines.append("")
+             header_lines.append("/* Unresolved call targets (stubbed) */")
+@@ -3162,10 +3264,13 @@ class BatchTranslator:
+                 "",
+                 "#define RECOMP_GENERATED_CODE",
+                 f'#include "{header_name}"',
++                '#include <math.h>',
+                 "",
+             ]
+             stub_lines.append(
+-                "/* Each stub consumes the return address its caller pushed,")
++                "/* A target inside another function is that function's code entered")
++            stub_lines.append(
++                " * at the target (entry_stub). The rest: each stub consumes the return address its caller pushed,")
+             stub_lines.append(
+                 " * exactly as a real 'ret' would. An empty body leaves esp 4 bytes")
+             stub_lines.append(
+@@ -3181,7 +3286,26 @@ class BatchTranslator:
+             stub_lines.append(
+                 " * esp off by N on every call. */")
+             stub_lines.append("")
++            entry_n = 0
+             for addr in sorted(unresolved):
++                code = self.translator.entry_stub(addr, unresolved[addr])
++                if code:
++                    stub_lines.append(code)
++                    entry_n += 1
++                    continue
++                epi = self.translator._stub_epilogue(addr)
++                if epi and epi[0]:
++                    # A shared epilogue: run it -- restore the registers it
++                    # pops, then return (address + N bytes of arguments).
++                    regs, n = epi
++                    body = " ".join(f"g_{r} = MEM32(g_esp); g_esp += 4;"
++                                    for r in regs)
++                    note = "; ".join(f"pop {r}" for r in regs) + f"; ret {n}"
++                    stub_lines.append(
++                        f"void {unresolved[addr]}(void) {{ {body} g_esp += {4 + n}; "
++                        f"/* 0x{addr:08X}: {note} */ }}"
++                    )
++                    continue
+                 popped = self.translator._stub_ret_bytes(addr)
+                 note = (f"ret {popped}" if popped else "not detected")
+                 stub_lines.append(
+diff --git 1/src/kernel/guest_ptr.h 2/src/kernel/guest_ptr.h
+new file mode 100644
+index 0000000..c24d5b4
+--- /dev/null
++++ 2/src/kernel/guest_ptr.h
+@@ -0,0 +1,27 @@
++/* Guest VA -> host pointer, for host code that reads or writes guest memory
++ * (device models, bridges, diagnostics).
++ *
++ * Natively the guest is laid out 1:1 at a host offset, so this is offset + va
++ * for every mapped range (RAM, its mirrors, the contiguous window, the
++ * apertures). The web build has no such layout: a page map with 1 MB
++ * granularity gives each guest MB its host delta (guest_wasm.c). Pointer
++ * arithmetic on the result is fine within one mapped range. */
++#ifndef XBOXRECOMP_GUEST_PTR_H
++#define XBOXRECOMP_GUEST_PTR_H
++#include <stddef.h>
++#include <stdint.h>
++
++#if defined(__EMSCRIPTEN__)
++extern uint32_t g_xbox_pagemap[4096];
++#define XBOX_HOST(va) ((uint8_t *)(uintptr_t)((uint32_t)(va) + g_xbox_pagemap[(uint32_t)(va) >> 20]))
++#else
++ptrdiff_t xbox_GetMemoryOffset(void);
++#define XBOX_HOST(va) ((uint8_t *)xbox_GetMemoryOffset() + (uint32_t)(va))
++#endif
++
++void *xbox_GuestToHost(uint32_t va);
++/* The inverse, for diagnostics (a guest object the host holds a pointer to).
++ * On the web build it knows RAM and the contiguous window; else 0. */
++uint32_t xbox_HostToGuest(const void *host);
++
++#endif
+diff --git 1/src/kernel/guest_wasm.c 2/src/kernel/guest_wasm.c
+new file mode 100644
+index 0000000..45b6a74
+--- /dev/null
++++ 2/src/kernel/guest_wasm.c
+@@ -0,0 +1,113 @@
++/*
++ * Guest address space for the WebAssembly build.
++ *
++ * Natively the guest's 4 GB are laid out 1:1 at a host offset, with the RAM
++ * mirrors, the contiguous window and the tiled aperture as extra views of the
++ * same pages. wasm32 has one linear memory, no fixed placement and no
++ * aliasing, so every guest access goes through g_xbox_pagemap instead (see
++ * XBOX_PTR in recomp_types.h): one entry per guest MB holding the host delta,
++ * host = va + delta (mod 2^32).
++ *
++ *   0x00000000  RAM (map size, 64 MB retail), plus mirrors every map size
++ *               up to 1 + XBOX_NUM_MIRRORS map sizes (same pages)
++ *   0x80000000  contiguous window (XBOX_CONTIG_SIZE)
++ *   0xF0000000  tiled aperture: the contiguous window again
++ *   0xFD000000  NV2A registers, 16 MB of plain memory
++ *   0xFE800000  MCPX registers, 8 MB (device ranges are serviced by
++ *               xbox_mmio_read/write before the page map is consulted)
++ *   0xFF000000  flash, 1 MB
++ *   elsewhere   one shared scratch MB: reads garbage, never traps
++ */
++#if defined(__EMSCRIPTEN__)
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "kernel.h"
++#include "xbox_memory_layout.h"
++
++#define MB (1u << 20)
++
++uint32_t g_xbox_pagemap[4096];
++
++static uint8_t *s_ram, *s_contig, *s_nv2a, *s_mcpx, *s_flash, *s_scratch;
++static size_t s_ram_size;
++static uint32_t s_contig_base, s_contig_size;
++
++static uint8_t *block(size_t bytes)
++{
++    void *p = aligned_alloc(MB, bytes);
++    if (p)
++        memset(p, 0, bytes);
++    return (uint8_t *)p;
++}
++
++static void map(uint32_t va, uint32_t bytes, uint8_t *host)
++{
++    uint32_t mb;
++    for (mb = va >> 20; mb < ((va + (bytes - 1)) >> 20) + 1 && mb < 4096; mb++)
++        g_xbox_pagemap[mb] = (uint32_t)(uintptr_t)host - va;
++}
++
++/* Allocates every block and fills the page map. Returns the RAM block, the
++ * host address of guest 0. */
++void *xbox_WasmMapGuest(size_t ram_size, unsigned mirrors,
++                        uint32_t contig_base, uint32_t contig_size,
++                        uint32_t tiled_base, uint32_t tiled_size)
++{
++    uint32_t mb, m;
++
++    if (s_ram)
++        return s_ram;
++    s_ram_size = ram_size;
++    s_contig_base = contig_base;
++    s_contig_size = contig_size;
++    s_ram     = block(ram_size);
++    s_contig  = block(contig_size);
++    s_nv2a    = block(16 * MB);
++    s_mcpx    = block(8 * MB);
++    s_flash   = block(MB);
++    s_scratch = block(MB);
++    if (!s_ram || !s_contig || !s_nv2a || !s_mcpx || !s_flash || !s_scratch) {
++        fprintf(stderr, "xbox_WasmMapGuest: out of memory\n");
++        return NULL;
++    }
++    for (mb = 0; mb < 4096; mb++)
++        g_xbox_pagemap[mb] = (uint32_t)(uintptr_t)s_scratch - (mb << 20);
++    for (m = 1; m <= mirrors; m++) {
++        uint64_t lo = (uint64_t)m * ram_size;
++        if (lo + ram_size > contig_base)
++            break;
++        map((uint32_t)lo, (uint32_t)ram_size, s_ram);
++    }
++    map(0, (uint32_t)ram_size, s_ram);
++    map(contig_base, contig_size, s_contig);
++    map(tiled_base, tiled_size < contig_size ? tiled_size : contig_size, s_contig);
++    map(0xFD000000u, 16 * MB, s_nv2a);
++    map(0xFE800000u, 8 * MB, s_mcpx);
++    map(0xFF000000u, MB, s_flash);
++    fprintf(stderr, "  [WASM] guest memory: RAM %u MB at %p (+%u mirrors), contiguous"
++            " %u MB at %p, NV2A %p, MCPX %p, flash %p\n",
++            (unsigned)(ram_size / MB), (void *)s_ram, m - 1,
++            contig_size / MB, (void *)s_contig, (void *)s_nv2a,
++            (void *)s_mcpx, (void *)s_flash);
++    return s_ram;
++}
++
++uint32_t xbox_HostToGuest(const void *host)
++{
++    const uint8_t *h = (const uint8_t *)host;
++    if (s_ram && h >= s_ram && h < s_ram + s_ram_size)
++        return (uint32_t)(h - s_ram);
++    if (s_contig && h >= s_contig && h < s_contig + s_contig_size)
++        return s_contig_base + (uint32_t)(h - s_contig);
++    return 0;
++}
++
++/* Host address of a mapped aperture, by its guest base. */
++void *xbox_WasmBlock(uint32_t guest_base)
++{
++    return (void *)(uintptr_t)(guest_base + g_xbox_pagemap[guest_base >> 20]);
++}
++#endif
+diff --git 1/src/kernel/kernel_mods.c 2/src/kernel/kernel_mods.c
+new file mode 100644
+index 0000000..d44212d
+--- /dev/null
++++ 2/src/kernel/kernel_mods.c
+@@ -0,0 +1,73 @@
++/* Asset mods: whole-file overrides of the game folder (kernel_mods.h). */
++#include "kernel_mods.h"
++
++#include <stdio.h>
++#include <string.h>
++
++static char s_dir[512];
++static char s_names[XBOX_MODS_MAX][128];
++static int s_count;
++
++/* A mod name is one folder inside the mods dir: no separators, no "..". */
++static int name_ok(const char *s)
++{
++    return *s && !strchr(s, '/') && !strchr(s, '\\') && !strstr(s, "..");
++}
++
++int xbox_mods_init(const char *mods_dir)
++{
++    char path[640], line[256];
++    FILE *f;
++
++    s_count = 0;
++    snprintf(s_dir, sizeof s_dir, "%s", mods_dir ? mods_dir : "");
++    if (!s_dir[0])
++        return 0;
++    snprintf(path, sizeof path, "%s/load-order.txt", s_dir);
++    if (!(f = fopen(path, "r")))
++        return 0;
++    while (s_count < XBOX_MODS_MAX && fgets(line, sizeof line, f)) {
++        char *s = line, *e;
++        while (*s == ' ' || *s == '\t')
++            s++;
++        e = s + strlen(s);
++        while (e > s && (e[-1] == '\n' || e[-1] == '\r' || e[-1] == ' ' || e[-1] == '\t'))
++            *--e = '\0';
++        if (*s == '#' || !name_ok(s) || (size_t)(e - s) >= sizeof s_names[0])
++            continue;
++        snprintf(s_names[s_count++], sizeof s_names[0], "%s", s);
++    }
++    fclose(f);
++    return s_count;
++}
++
++int xbox_mods_count(void)
++{
++    return s_count;
++}
++
++const char *xbox_mods_dir(void)
++{
++    return s_dir;
++}
++
++const char *xbox_mods_name(int i)
++{
++    return i >= 0 && i < s_count ? s_names[i] : NULL;
++}
++
++int xbox_mods_lookup(const char *rel, char *out, size_t out_size, int (*exists)(char *path))
++{
++    int i;
++    if (!s_count || !rel || !*rel || strstr(rel, ".."))
++        return 0;
++    while (*rel == '/')
++        rel++;
++    for (i = s_count - 1; i >= 0; i--) {
++        if ((size_t)snprintf(out, out_size, "%s/%s/%s", s_dir, s_names[i], rel) >= out_size)
++            continue;
++        if (exists(out))
++            return i + 1;
++    }
++    return 0;
++}
+diff --git 1/src/kernel/kernel_mods.h 2/src/kernel/kernel_mods.h
+new file mode 100644
+index 0000000..87483f7
+--- /dev/null
++++ 2/src/kernel/kernel_mods.h
+@@ -0,0 +1,38 @@
++/*
++ * Asset mods: whole-file overrides of the game folder.
++ *
++ * <mods dir>/load-order.txt lists the enabled mods, one folder name per line
++ * (blank lines and lines starting with '#' are skipped); a later line wins
++ * over an earlier one. Each mod folder mirrors the game folder, so
++ * mods/<name>/data/x.big replaces game/data/x.big. Mods are only read.
++ */
++#ifndef XBOX_KERNEL_MODS_H
++#define XBOX_KERNEL_MODS_H
++
++#include <stddef.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++#define XBOX_MODS_MAX 64
++
++/* Reads <mods_dir>/load-order.txt. Returns the number of mods enabled (0 when
++ * the folder or the file is missing). Calling it again starts over. */
++int xbox_mods_init(const char *mods_dir);
++
++int xbox_mods_count(void);
++const char *xbox_mods_dir(void);        /* the folder given to xbox_mods_init */
++const char *xbox_mods_name(int i);      /* in load order, 0 = lowest priority */
++
++/* rel: a path relative to the game folder, '/' separators. Tries each enabled
++ * mod, last first. exists() gets a candidate host path, may fix its letter case
++ * in place, and returns nonzero when that file is there. On a hit the host
++ * path is in out and the return value is the mod's index + 1; 0 = no mod has it. */
++int xbox_mods_lookup(const char *rel, char *out, size_t out_size, int (*exists)(char *path));
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif
+diff --git 1/src/kernel/nv2a_backend.h 2/src/kernel/nv2a_backend.h
+new file mode 100644
+index 0000000..2102f59
+--- /dev/null
++++ 2/src/kernel/nv2a_backend.h
+@@ -0,0 +1,99 @@
++/**
++ * Pluggable GPU backend for the pushbuffer executor.
++ *
++ * The executor parses the pushbuffer, tracks state and runs vertex programs.
++ * With a backend registered it hands the rasterising to it instead of
++ * drawing pixels itself. The backend is optional: with none set, nothing
++ * here is used.
++ */
++#ifndef XBOXRECOMP_NV2A_BACKEND_H
++#define XBOXRECOMP_NV2A_BACKEND_H
++
++#include <stdint.h>
++#include <stdio.h>
++#include "nv2a_vsh_interp.h"
++#include "nv2a_combiner.h"
++
++typedef struct {
++    uint32_t color_offset;          /* guest address of the colour surface */
++    uint32_t pitch;
++    uint32_t x, y, width, height;   /* clip rectangle */
++    uint32_t bpp;                   /* 2 or 4 */
++    int      swizzled;              /* render target stored Morton-swizzled */
++    uint32_t zeta_offset;
++    uint32_t zmax;                  /* 0xFFFF (Z16) or 0xFFFFFF (Z24S8) */
++    int      depth_test, depth_write;
++    uint32_t depth_func;            /* GL enum, as the NV2A takes it */
++    int      w_buffer;              /* CONTROL0 Z_PERSPECTIVE: depth is w, not z */
++    /* Stencil (Z24S8 only): STENCIL_TEST_ENABLE and 0x0360..0x0378 -- write
++     * mask, func (GL enum), ref, read mask, op fail / zfail / zpass (GL
++     * enums: KEEP 0x1E00, ZERO 0, REPLACE 0x1E01, INCRSAT 0x1E02, DECRSAT
++     * 0x1E03, INVERT 0x150A, INCR 0x8507, DECR 0x8508); stencil_clear is
++     * the ZSTENCIL_CLEAR_VALUE's stencil byte. */
++    int      stencil_test;
++    uint32_t stencil_write_mask, stencil_func, stencil_ref, stencil_read_mask;
++    uint32_t stencil_fail, stencil_zfail, stencil_zpass, stencil_clear;
++    /* Per-pixel state (GL enums as the NV2A takes them). */
++    int      blend_enable;
++    uint32_t blend_sfactor, blend_dfactor, blend_equation, blend_color; /* ARGB */
++    uint32_t color_mask;            /* A<<24 R<<16 G<<8 B, non-zero byte = write */
++    int      alpha_test;
++    uint32_t alpha_func, alpha_ref;
++    Nv2aCombiner rc;
++    int      rc_seen;               /* combiners programmed by the title */
++    uint32_t fog_enable, fog_mode, fog_color;   /* fog_color: FOG_COLOR as written (R in bits 0-7) */
++    float    fog_param[2];
++    /* Points: size in pixels (SET_POINT_SIZE / 8, 1 if unset), used unless
++     * point_params (then the program's oPts.x); point_sprite = stage 3
++     * coordinates come from the position inside the point. */
++    float    point_size;
++    int      point_params, point_sprite;
++} Nv2aTarget;
++
++typedef struct {
++    int      valid;
++    uint32_t offset, width, height;
++    uint32_t addr_u, addr_v;        /* 1 wrap 2 mirror 3 clamp 4 border 5 clamp-to-edge */
++    int      linear_filter;         /* magnification */
++    int      normalised;            /* swizzled/DXT: coords normalised; else texels */
++    uint32_t format;                /* NV097 colour format code */
++    uint32_t stage_program;         /* SET_SHADER_STAGE_PROGRAM, 5 bits per stage */
++    uint64_t hash;                  /* of the base level's bytes (this frame) */
++    int      cube;                  /* cube map: decoded as six faces stacked, +X -X +Y -Y +Z -Z */
++} Nv2aTexInfo;
++
++/* Texture stage description, and mip 0 decoded to A8R8G8B8 (width*height
++ * dwords; a cube map width*height*6, the faces one below the other). Both
++ * return 0 if the stage is unusable. */
++int nv2a_exec_tex_info(int stage, Nv2aTexInfo *info);
++int nv2a_exec_tex_decode(int stage, uint32_t *out);
++
++/* Trace aid: the current batch's program, constants and vertex inputs. */
++void nv2a_exec_dump_batch(FILE *f, uint32_t max_vertices);
++
++#define NV2A_CLEAR_Z      0x01
++#define NV2A_CLEAR_STENCIL 0x02
++#define NV2A_CLEAR_COLOR  0xF0
++
++typedef struct {
++    /* One draw call after the vertex program: n vertices, assembled
++     * according to prim (NV097 primitive code). Return 1 if consumed. */
++    int  (*draw)(const Nv2aTarget *t, uint32_t prim, const Nv2aVshOutput *v, uint32_t n);
++    /* CLEAR_SURFACE; argb and depth are already decoded (depth 0..1). */
++    /* Return 1 if consumed (else the executor clears guest memory itself). */
++    int  (*clear)(const Nv2aTarget *t, uint32_t flags, uint32_t argb, float depth);
++    /* A finished frame is being presented from t: the backend must have
++     * written it into guest memory (A8R8G8B8 / R5G6B5 at color_offset). */
++    void (*flip)(const Nv2aTarget *t);
++    /* Optional: the same draw with the vertex program left to the backend
++     * (run on the GPU). in: n vertices of p->nin float4 inputs each (packed
++     * by p->in_slot), in draw order. Return 1 if consumed; 0 and the
++     * executor runs the program itself and calls draw. Not offered when the
++     * program writes constants (vertex order matters then). */
++    int  (*draw_vsh)(const Nv2aTarget *t, uint32_t prim, const float *in, uint32_t n,
++                     const Nv2aVshProgram *p);
++} Nv2aBackend;
++
++void nv2a_exec_set_backend(const Nv2aBackend *b);
++
++#endif
+diff --git 1/src/video/fb_gamma.c 2/src/video/fb_gamma.c
+new file mode 100644
+index 0000000..165eab0
+--- /dev/null
++++ 2/src/video/fb_gamma.c
+@@ -0,0 +1,76 @@
++/* The display's gamma ramp.
++ *
++ * Xbox D3D (SetGammaRamp; SSX 3's sub_00239B76) loads 256 R, G and B entries
++ * into the NV2A's VGA palette (PRMDIO 0x6813C8 index, 0x6813C9 data, three
++ * writes per entry), and the RAMDAC looks every scanned-out pixel up in it.
++ * The emulated MMIO keeps no such table, so a title calls
++ * xbox_FramebufferSetGammaRamp with the ramp it uploads and the presenters
++ * apply it to the finished frame -- without it the picture is shown with a
++ * linear ramp, lighter and flatter than on the console.
++ * RECOMP_GAMMA=0 ignores the title's ramp. */
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++static uint8_t s_lut[3][256];
++static volatile int s_lut_on;
++static volatile unsigned s_lut_serial;     /* +1 per change, for the GPU presenter */
++
++void xbox_FramebufferSetGammaRamp(const uint8_t *r, const uint8_t *g, const uint8_t *b)
++{
++    static int allowed = -1, said;
++    int i, identity = 1;
++    if (allowed < 0) {
++        const char *e = getenv("RECOMP_GAMMA");
++        allowed = !(e && *e == '0');
++    }
++    for (i = 0; i < 256; i++)
++        if (r[i] != i || g[i] != i || b[i] != i)
++            identity = 0;
++    if (!allowed || identity) {
++        s_lut_on = 0;
++        s_lut_serial++;
++        return;
++    }
++    memcpy(s_lut[0], r, 256);
++    memcpy(s_lut[1], g, 256);
++    memcpy(s_lut[2], b, 256);
++    s_lut_on = 1;
++    s_lut_serial++;
++    if (said < 4) {
++        said++;
++        fprintf(stderr, "[GAMMA] ramp loaded: r 0->%u 64->%u 128->%u 192->%u 255->%u"
++                " (g 128->%u, b 128->%u)\n", r[0], r[64], r[128], r[192], r[255], g[128], b[128]);
++    }
++}
++
++/* Apply the ramp to n X8R8G8B8 pixels in place (no-op without one). */
++void xbox_FramebufferApplyGamma(uint32_t *px, size_t n)
++{
++    size_t i;
++    if (!s_lut_on)
++        return;
++    for (i = 0; i < n; i++) {
++        uint32_t c = px[i];
++        px[i] = (c & 0xFF000000u) | ((uint32_t)s_lut[0][(c >> 16) & 0xFF] << 16)
++              | ((uint32_t)s_lut[1][(c >> 8) & 0xFF] << 8) | s_lut[2][c & 0xFF];
++    }
++}
++
++/* The ramp as 256 B8G8R8A8 texels (identity without one), for a presenter
++ * that applies it on the GPU; returns its change serial. */
++unsigned xbox_FramebufferGammaTexels(uint32_t *out256)
++{
++    int i;
++    for (i = 0; i < 256; i++)
++        out256[i] = s_lut_on ? 0xFF000000u | (uint32_t)s_lut[0][i] << 16
++                               | (uint32_t)s_lut[1][i] << 8 | s_lut[2][i]
++                             : 0xFF000000u | (uint32_t)i * 0x010101u;
++    return s_lut_serial;
++}
++
++unsigned xbox_FramebufferGammaSerial(void)
++{
++    return s_lut_serial;
++}
+diff --git 1/src/video/fb_present_sdl.c 2/src/video/fb_present_sdl.c
 new file mode 100644
 index 0000000..d5f3e1a
 --- /dev/null
-+++ w/src/video/fb_present_sdl.c
++++ 2/src/video/fb_present_sdl.c
 @@ -0,0 +1,493 @@
 +/**
 + * POSIX counterpart of fb_present.c: show the guest framebuffer in an SDL2
@@ -10410,11 +10857,11 @@ index 0000000..d5f3e1a
 +        s_fb_running = 0;
 +}
 +#endif /* !_WIN32 */
-diff --git c/src/video/fb_present_web.c w/src/video/fb_present_web.c
+diff --git 1/src/video/fb_present_web.c 2/src/video/fb_present_web.c
 new file mode 100644
 index 0000000..4f2e829
 --- /dev/null
-+++ w/src/video/fb_present_web.c
++++ 2/src/video/fb_present_web.c
 @@ -0,0 +1,273 @@
 +/**
 + * Browser counterpart of fb_present_sdl.c: the guest framebuffer for a page.
@@ -10689,11 +11136,11 @@ index 0000000..4f2e829
 +            s_fb_width, s_fb_height);
 +}
 +#endif /* __EMSCRIPTEN__ */
-diff --git c/src/video/gpu_present.c w/src/video/gpu_present.c
+diff --git 1/src/video/gpu_present.c 2/src/video/gpu_present.c
 new file mode 100644
 index 0000000..7b3408b
 --- /dev/null
-+++ w/src/video/gpu_present.c
++++ 2/src/video/gpu_present.c
 @@ -0,0 +1,381 @@
 +/*
 + * D3D11 presentation for the framebuffer window (ROADMAP Phase 2.1).
@@ -11076,11 +11523,11 @@ index 0000000..7b3408b
 +    return s_rtv != NULL;
 +}
 +#endif
-diff --git c/src/video/gpu_present.h w/src/video/gpu_present.h
+diff --git 1/src/video/gpu_present.h 2/src/video/gpu_present.h
 new file mode 100644
 index 0000000..8891786
 --- /dev/null
-+++ w/src/video/gpu_present.h
++++ 2/src/video/gpu_present.h
 @@ -0,0 +1,17 @@
 +/* D3D11 presentation for the framebuffer window (see gpu_present.c). */
 +#ifndef XBOX_GPU_PRESENT_H
@@ -11099,164 +11546,11 @@ index 0000000..8891786
 +void gpu_present_shutdown(void);
 +#endif
 +#endif
-diff --git c/src/video/video_player.h w/src/video/video_player.h
-index c844aef..bc4d39c 100644
---- c/src/video/video_player.h
-+++ w/src/video/video_player.h
-@@ -62,13 +62,26 @@ int  video_dump_frame_bmp(const char *path);
-  * zero when there is no window, which is the right answer: with nothing to
-  * focus there is nothing to type into. */
- int xbox_FramebufferKeyDown(int vk);
-+/* How many times that key went down (auto-repeat not counted) since the last
-+ * call, which resets it. For hotkeys checked once a frame: a tap shorter than
-+ * a frame, or one followed at once by a focus change (which clears the held
-+ * state), still counts. */
-+int xbox_FramebufferKeyPresses(int vk);
- 
- void xbox_FramebufferWindowStart(void);
- void xbox_FramebufferWindowSet(uint32_t fb_va, uint32_t pitch);
- int  xbox_FramebufferDumpBmp(const char *path);
-+/* What the window shows (a renderer's published frame, gamma and overlay
-+ * included where the presenter allows) as a BMP: the snapshot trigger's
-+ * capture, callable from any thread. Written asynchronously by the window
-+ * thread where the presenter captures its back buffer. */
-+void xbox_FramebufferSnapshot(const char *path);
- /* Title bar: "<XBE title> | FPS: n | draws: n". The name is the certificate's
-  * UTF-16 title (40 chars max); the stats come from each flip. */
- void xbox_FramebufferWindowSetTitle(const uint16_t *name, int max_chars);
- void xbox_FramebufferWindowFrameStats(uint32_t draws);
-+/* The title's display gamma ramp (256 entries each), applied when presenting
-+ * (fb_gamma.c). */
-+void xbox_FramebufferSetGammaRamp(const uint8_t *r, const uint8_t *g, const uint8_t *b);
- 
- #endif /* BURNOUT3_VIDEO_PLAYER_H */
-diff --git c/templates/runtime/recomp_types.h w/templates/runtime/recomp_types.h
-index 8e9325e..e2089b0 100644
---- c/templates/runtime/recomp_types.h
-+++ w/templates/runtime/recomp_types.h
-@@ -410,6 +410,56 @@ void recomp_trace_esp(const char *name, const char *tag);
-  * uintptr_t cast preserves the overflow bits, landing us 4GB+ past
-  * our mapping and causing access violations.
-  */
-+#if defined(__EMSCRIPTEN__)
-+/*
-+ * WebAssembly: one 32-bit linear memory holds the host and the guest, so the
-+ * guest's 4 GB address space cannot be laid out 1:1 and aliased views (the
-+ * low-RAM mirrors, contiguous window, tiled aperture) cannot exist. A page
-+ * map with 1 MB granularity gives each guest MB its host delta instead:
-+ * host = va + g_xbox_pagemap[va >> 20], modulo 2^32. Unmapped MBs share one
-+ * scratch MB. Filled by xbox_MemoryLayoutInit (guest_wasm.c).
-+ *
-+ * There are no page faults either, so device registers (the MCPX span: APU,
-+ * AC'97, USB) are checked for on every 8/16/32-bit access. Stores are
-+ * explicit (STn, tools/explicit_stores.py) so MEMn can be an rvalue here --
-+ * a store not rewritten is a compile error rather than an unchecked write.
-+ */
-+extern uint32_t g_xbox_pagemap[4096];
-+#define XBOX_PTR(addr) ((uintptr_t)((uint32_t)(addr) + g_xbox_pagemap[(uint32_t)(addr) >> 20]))
-+#define XBOX_IS_MMIO(a) ((uint32_t)((uint32_t)(a) - 0xFE800000u) < 0x00800000u)
-+
-+uint32_t xbox_mmio_read(uint32_t va, int size);
-+void     xbox_mmio_write(uint32_t va, uint32_t val, int size);
-+
-+#define RECOMP_LDST(bits, T)                                                  \
-+static inline T recomp_ld##bits(uint32_t a) {                                 \
-+    if (__builtin_expect(XBOX_IS_MMIO(a), 0))                                 \
-+        return (T)xbox_mmio_read(a, bits / 8);                                \
-+    return *(volatile T *)XBOX_PTR(a);                                        \
-+}                                                                             \
-+static inline void recomp_st##bits(uint32_t a, T v) {                         \
-+    if (__builtin_expect(XBOX_IS_MMIO(a), 0))                                 \
-+        xbox_mmio_write(a, (uint32_t)v, bits / 8);                            \
-+    else                                                                      \
-+        *(volatile T *)XBOX_PTR(a) = v;                                       \
-+}
-+RECOMP_LDST(8, uint8_t)
-+RECOMP_LDST(16, uint16_t)
-+RECOMP_LDST(32, uint32_t)
-+#undef RECOMP_LDST
-+
-+#define MEM8(addr)   recomp_ld8((uint32_t)(addr))
-+#define MEM16(addr)  recomp_ld16((uint32_t)(addr))
-+#define MEM32(addr)  recomp_ld32((uint32_t)(addr))
-+#define SMEM8(addr)  ((int8_t)recomp_ld8((uint32_t)(addr)))
-+#define SMEM16(addr) ((int16_t)recomp_ld16((uint32_t)(addr)))
-+#define SMEM32(addr) ((int32_t)recomp_ld32((uint32_t)(addr)))
-+#define SMEM64(addr) (*(volatile int64_t *)XBOX_PTR(addr))
-+#define ST8(addr, v)  recomp_st8((uint32_t)(addr), (uint8_t)(v))
-+#define ST16(addr, v) recomp_st16((uint32_t)(addr), (uint16_t)(v))
-+#define ST32(addr, v) recomp_st32((uint32_t)(addr), (uint32_t)(v))
-+#define ST64(addr, v) (*(volatile int64_t *)XBOX_PTR(addr) = (int64_t)(v))
-+#else
- #define XBOX_PTR(addr) ((uintptr_t)(uint32_t)(addr) + g_xbox_mem_offset)
- 
- /** Read/write N bytes at a flat Xbox memory address. */
-@@ -423,6 +473,15 @@ void recomp_trace_esp(const char *name, const char *tag);
- #define SMEM32(addr) (*(volatile int32_t  *)XBOX_PTR(addr))
- #define SMEM64(addr) (*(volatile int64_t  *)XBOX_PTR(addr))
- 
-+
-+/** Explicit stores (tools/explicit_stores.py in the game project rewrites
-+ * `MEMn(a) = v` into these; see the wasm branch above for why). */
-+#define ST8(addr, v)  ((void)(MEM8(addr) = (uint8_t)(v)))
-+#define ST16(addr, v) ((void)(MEM16(addr) = (uint16_t)(v)))
-+#define ST32(addr, v) ((void)(MEM32(addr) = (uint32_t)(v)))
-+#define ST64(addr, v) ((void)(SMEM64(addr) = (int64_t)(v)))
-+#endif /* __EMSCRIPTEN__ */
-+
- /** Float/double memory access. */
- #define MEMF(addr)   (*(volatile float    *)XBOX_PTR(addr))
- #define MEMD(addr)   (*(volatile double   *)XBOX_PTR(addr))
-@@ -493,8 +552,8 @@ static inline RecompXmm XMM_MEM(uint32_t addr) {
- }
- 
- static inline void XMM_STORE(uint32_t addr, RecompXmm v) {
--    MEM32(addr)      = v.u[0]; MEM32(addr + 4)  = v.u[1];
--    MEM32(addr + 8)  = v.u[2]; MEM32(addr + 12) = v.u[3];
-+    ST32(addr, v.u[0]); ST32(addr + 4, v.u[1]);
-+    ST32(addr + 8, v.u[2]); ST32(addr + 12, v.u[3]);
- }
- 
- /* movlps/movhps move 8 bytes into or out of one half, leaving the
-@@ -512,8 +571,8 @@ static inline void recomp_xmm_load_half(RecompXmm *dst, uint32_t addr,
- 
- static inline void recomp_xmm_store_half(uint32_t addr, RecompXmm src,
-                                          int high) {
--    MEM32(addr)     = src.u[high * 2];
--    MEM32(addr + 4) = src.u[high * 2 + 1];
-+    ST32(addr, src.u[high * 2]);
-+    ST32(addr + 4, src.u[high * 2 + 1]);
- }
- 
- /** movlhps: dst high = src low. */
-@@ -794,7 +853,7 @@ static inline uint16_t ROR16(uint16_t val, int n) {
- #define PUSH32(sp, val) do { \
-     uint32_t _pv = (uint32_t)(val); \
-     (sp) -= 4; \
--    MEM32(sp) = _pv; \
-+    ST32(sp, _pv); \
- } while(0)
- 
- /**
-@@ -1110,6 +1169,13 @@ extern volatile uint64_t g_icall_guard_misses;
-            recomp_icall_fail_log(_va); g_esp += 4; g_eax = 0; } \
- } while(0)
- 
-+/* Preemption point at every loop head (emitted by tools/recomp). Counts
-+ * iterations per thread and, every RECOMP_LOOP_QUANTUM of them, lets other
-+ * guest threads have the guest CPU when the lock is on (kernel_bridge.c). */
-+extern RECOMP_TLS int g_loop_budget;
-+void recomp_loop_yield(void);
-+#define RECOMP_LOOP_YIELD() do { if (--g_loop_budget < 0) recomp_loop_yield(); } while (0)
-+
- /* ================================================================
-  * Register name aliases for generated code
-  *
-diff --git c/tests/kernel_eeprom_settings/CMakeLists.txt w/tests/kernel_eeprom_settings/CMakeLists.txt
+diff --git 1/tests/kernel_eeprom_settings/CMakeLists.txt 2/tests/kernel_eeprom_settings/CMakeLists.txt
 new file mode 100644
 index 0000000..42f6fa3
 --- /dev/null
-+++ w/tests/kernel_eeprom_settings/CMakeLists.txt
++++ 2/tests/kernel_eeprom_settings/CMakeLists.txt
 @@ -0,0 +1,9 @@
 +cmake_minimum_required(VERSION 3.20)
 +project(kernel_eeprom_settings_test C)
@@ -11267,11 +11561,11 @@ index 0000000..42f6fa3
 +target_link_libraries(kernel_eeprom_settings_test PRIVATE xboxrecomp)
 +enable_testing()
 +add_test(NAME kernel_eeprom_settings_test COMMAND kernel_eeprom_settings_test)
-diff --git c/tests/kernel_eeprom_settings/test_main.c w/tests/kernel_eeprom_settings/test_main.c
+diff --git 1/tests/kernel_eeprom_settings/test_main.c 2/tests/kernel_eeprom_settings/test_main.c
 new file mode 100644
 index 0000000..e9d2195
 --- /dev/null
-+++ w/tests/kernel_eeprom_settings/test_main.c
++++ 2/tests/kernel_eeprom_settings/test_main.c
 @@ -0,0 +1,90 @@
 +/* The EEPROM user settings: the time zone is the host's, and XC_MAX_OS --
 + * the whole block, which XAPI reads in one query -- agrees with the single
@@ -11363,11 +11657,11 @@ index 0000000..e9d2195
 +           (long)bias);
 +    return 0;
 +}
-diff --git c/tests/kernel_fatx_overwrite/CMakeLists.txt w/tests/kernel_fatx_overwrite/CMakeLists.txt
+diff --git 1/tests/kernel_fatx_overwrite/CMakeLists.txt 2/tests/kernel_fatx_overwrite/CMakeLists.txt
 new file mode 100644
 index 0000000..50c2912
 --- /dev/null
-+++ w/tests/kernel_fatx_overwrite/CMakeLists.txt
++++ 2/tests/kernel_fatx_overwrite/CMakeLists.txt
 @@ -0,0 +1,11 @@
 +cmake_minimum_required(VERSION 3.20)
 +project(kernel_fatx_overwrite_test C)
@@ -11380,11 +11674,11 @@ index 0000000..50c2912
 +target_link_libraries(kernel_fatx_overwrite_test PRIVATE xboxrecomp)
 +enable_testing()
 +add_test(NAME kernel_fatx_overwrite_test COMMAND kernel_fatx_overwrite_test)
-diff --git c/tests/kernel_fatx_overwrite/test_main.c w/tests/kernel_fatx_overwrite/test_main.c
+diff --git 1/tests/kernel_fatx_overwrite/test_main.c 2/tests/kernel_fatx_overwrite/test_main.c
 new file mode 100644
 index 0000000..f2ad34e
 --- /dev/null
-+++ w/tests/kernel_fatx_overwrite/test_main.c
++++ 2/tests/kernel_fatx_overwrite/test_main.c
 @@ -0,0 +1,437 @@
 +/*
 + * FATX overwrite: regrowing after an overwrite keeps the data.
@@ -11823,11 +12117,11 @@ index 0000000..f2ad34e
 +    printf("\n%d failure(s)\n", failures);
 +    return failures ? 1 : 0;
 +}
-diff --git c/tests/kernel_file_relative/CMakeLists.txt w/tests/kernel_file_relative/CMakeLists.txt
+diff --git 1/tests/kernel_file_relative/CMakeLists.txt 2/tests/kernel_file_relative/CMakeLists.txt
 new file mode 100644
 index 0000000..25d7224
 --- /dev/null
-+++ w/tests/kernel_file_relative/CMakeLists.txt
++++ 2/tests/kernel_file_relative/CMakeLists.txt
 @@ -0,0 +1,11 @@
 +cmake_minimum_required(VERSION 3.20)
 +project(kernel_file_relative_test C)
@@ -11840,11 +12134,11 @@ index 0000000..25d7224
 +target_link_libraries(kernel_file_relative_test PRIVATE xboxrecomp)
 +enable_testing()
 +add_test(NAME kernel_file_relative_test COMMAND kernel_file_relative_test)
-diff --git c/tests/kernel_file_relative/test_main.c w/tests/kernel_file_relative/test_main.c
+diff --git 1/tests/kernel_file_relative/test_main.c 2/tests/kernel_file_relative/test_main.c
 new file mode 100644
 index 0000000..20648a5
 --- /dev/null
-+++ w/tests/kernel_file_relative/test_main.c
++++ 2/tests/kernel_file_relative/test_main.c
 @@ -0,0 +1,150 @@
 +/*
 + * Opens relative to a RootDirectory handle, on every host.
@@ -11996,11 +12290,11 @@ index 0000000..20648a5
 +    printf("%s (%d failure%s)\n", failures ? "FAILED" : "OK", failures, failures == 1 ? "" : "s");
 +    return failures ? 1 : 0;
 +}
-diff --git c/tests/kernel_memory_bridge_posix/test_main.c w/tests/kernel_memory_bridge_posix/test_main.c
+diff --git 1/tests/kernel_memory_bridge_posix/test_main.c 2/tests/kernel_memory_bridge_posix/test_main.c
 new file mode 100644
 index 0000000..5fb3363
 --- /dev/null
-+++ w/tests/kernel_memory_bridge_posix/test_main.c
++++ 2/tests/kernel_memory_bridge_posix/test_main.c
 @@ -0,0 +1,403 @@
 +/*
 + * Kernel thread objects and file bridges, through the path a title takes.
@@ -12405,11 +12699,11 @@ index 0000000..5fb3363
 +    printf("\n%d failure(s)\n", failures);
 +    return failures ? 1 : 0;
 +}
-diff --git c/tests/kernel_mods/CMakeLists.txt w/tests/kernel_mods/CMakeLists.txt
+diff --git 1/tests/kernel_mods/CMakeLists.txt 2/tests/kernel_mods/CMakeLists.txt
 new file mode 100644
 index 0000000..7262e70
 --- /dev/null
-+++ w/tests/kernel_mods/CMakeLists.txt
++++ 2/tests/kernel_mods/CMakeLists.txt
 @@ -0,0 +1,8 @@
 +cmake_minimum_required(VERSION 3.20)
 +project(kernel_mods_test C)
@@ -12419,11 +12713,11 @@ index 0000000..7262e70
 +target_include_directories(kernel_mods_test PRIVATE ../../src/kernel)
 +enable_testing()
 +add_test(NAME kernel_mods_test COMMAND kernel_mods_test)
-diff --git c/tests/kernel_mods/test_main.c w/tests/kernel_mods/test_main.c
+diff --git 1/tests/kernel_mods/test_main.c 2/tests/kernel_mods/test_main.c
 new file mode 100644
 index 0000000..7d95d82
 --- /dev/null
-+++ w/tests/kernel_mods/test_main.c
++++ 2/tests/kernel_mods/test_main.c
 @@ -0,0 +1,93 @@
 +/* kernel_mods: load order, name checks and lookup order. */
 +#include "kernel_mods.h"
@@ -12518,218 +12812,3 @@ index 0000000..7d95d82
 +        printf("kernel_mods: all checks passed\n");
 +    return fails != 0;
 +}
-diff --git c/tools/recomp/translator.py w/tools/recomp/translator.py
-index 3cd9250..0e9c350 100644
---- c/tools/recomp/translator.py
-+++ w/tools/recomp/translator.py
-@@ -1311,6 +1311,36 @@ class FunctionTranslator:
-                     return 0
-         return 0
- 
-+    def _stub_epilogue(self, addr, max_insns=8):
-+        """The registers popped, then the `ret N` immediate, when the code at
-+        `addr` is nothing but a function epilogue (`pop r32`* then `ret`).
-+
-+        Such an address is a branch target into another function's shared
-+        exit -- `jne <epilogue>` from a switch arm that was split off as its
-+        own function. A stub that only moves esp leaves every popped
-+        callee-saved register holding the jumper's value, so its caller
-+        carries on with the wrong esi/edi/ebx; SSX 3's Options menu crashed
-+        that way. Returns None for anything else.
-+        """
-+        offset = va_to_file_offset(addr)
-+        if offset is None or not self.xbe_data:
-+            return None
-+        window = self.xbe_data[offset:offset + max_insns * 3]
-+        regs = []
-+        try:
-+            for insn in self.disasm._cs.disasm(window, addr):
-+                mnemonic = insn.mnemonic.lower()
-+                if mnemonic == "pop" and insn.op_str in (
-+                        "eax", "ebx", "ecx", "edx", "esi", "edi", "ebp"):
-+                    regs.append(insn.op_str)
-+                    continue
-+                if mnemonic in ("ret", "retn"):
-+                    return regs, (int(insn.op_str, 0) if insn.op_str else 0)
-+                return None
-+        except Exception:
-+            return None
-+        return None
-+
-     def _read_local_jump_table(self, table_va, lower, upper,
-                                max_entries=256, min_entry_va=None):
-         """Read the contiguous pointer cluster around an indexed-jump base."""
-@@ -2027,6 +2057,10 @@ class FunctionTranslator:
-         self.lifter.imm_code_refs = imm_refs
- 
-         # Build basic blocks
-+        forced = getattr(self, "_forced_leaders", None)
-+        if forced:
-+            switch_leaders = set(switch_leaders or ()) | {
-+                a for a in forced if start < a < end}
-         blocks = self.disasm.build_basic_blocks(
-             instructions, start, end,
-             extra_leaders=switch_leaders if switch_leaders else None,
-@@ -2058,6 +2092,57 @@ class FunctionTranslator:
-                     block.successors = []
-         return instructions, blocks
- 
-+    def entry_stub(self, addr, name):
-+        """C for a call/jump target in the middle of another function.
-+
-+        tools.disasm sometimes splits one function in two (a switch arm, a
-+        shared epilogue), so a jump between the halves becomes a call to an
-+        address that is no function start. A stub that only returns skips that
-+        code silently -- SSX 3's Options menu crashed on one, Equip Gear went
-+        wrong on others. Instead: the containing function translated again
-+        with `addr` forced to a block leader, renamed, entered with a goto.
-+        Registers are the globals; ebp is the jumper's frame (g_seh_ebp, set
-+        before every tail jump), exactly the state a guest jump arrives with.
-+        Returns None when addr is not an instruction of a known function.
-+        """
-+        if not hasattr(self, "_entry_index"):
-+            self._entry_index = sorted(
-+                (a, info) for a, info in self.func_db.items())
-+            self._entry_starts = [a for a, _ in self._entry_index]
-+        import bisect as _bisect
-+        i = _bisect.bisect_right(self._entry_starts, addr) - 1
-+        if i < 0:
-+            return None
-+        fstart, finfo = self._entry_index[i]
-+        fend = finfo.get("end") or fstart + finfo.get("size", 0)
-+        recovered = self._recovered_cfg.get(fstart)
-+        if recovered:
-+            fend = recovered["end"]
-+        if not (fstart < addr < fend):
-+            return None
-+        self._forced_leaders = {addr}
-+        try:
-+            code = self.translate_function(fstart, finfo)
-+        except Exception:
-+            code = None
-+        finally:
-+            self._forced_leaders = None
-+        label = f"loc_{addr:08X}:"
-+        if not code or label not in code:
-+            return None
-+        fname = _func_ident(fstart, finfo.get("name", f"sub_{fstart:08X}"))
-+        head = f"void {fname}(void)"
-+        if head not in code:
-+            return None
-+        code = code.replace(head, f"void {name}(void)", 1)
-+        first = code.find("\nloc_")
-+        if first < 0:
-+            return None
-+        frame = "    ebp = g_seh_ebp;\n" if "uint32_t ebp" in code[:first] else ""
-+        entry = (f"\n    /* entered at 0x{addr:08X}, inside 0x{fstart:08X} */\n"
-+                 f"{frame}    goto loc_{addr:08X};\n")
-+        return code[:first] + entry + code[first:]
-+
-     def translate_function(self, func_addr, func_info):
-         """
-         Translate a single function to C code.
-@@ -2495,6 +2580,15 @@ class FunctionTranslator:
-                 # otherwise produce `loc_X:` immediately before `}` and fail to
-                 # compile. The null statement costs nothing and is always valid.
-                 lines.append(f"loc_{bb.start:08X}: ;")
-+                # A loop head: some block at or after this one jumps back here.
-+                # The guest CPU lock (RECOMP_GUEST_LOCK) needs a preemption
-+                # point there -- a guest thread polling another guest thread
-+                # with no kernel call in the loop would otherwise hold the CPU
-+                # forever; the console's scheduler would have switched on its
-+                # quantum. RECOMP_LOOP_YIELD is a TLS countdown, cheap when
-+                # the lock is off.
-+                if any(p >= bb.start for p in preds.get(bb.start, ())):
-+                    lines.append("RECOMP_LOOP_YIELD();")
- 
-             # Inherit agreed state, including compatible CMP/TEST snapshots
-             # whose source operands differ between predecessor paths. The
-@@ -3020,11 +3114,19 @@ class BatchTranslator:
- 
-         # Generate header with all forward declarations
-         header_path = os.path.join(output_dir, header_name)
-+        # Stable across overrides: one declaration per function under the
-+        # name its callers use (sub_X, also for a wrapped sub_X_gen body or a
-+        # hand-written override), in address order, no counts. Every
-+        # generated file includes this header, so a header that changed
-+        # whenever an override or wrapper was added recompiled all of them
-+        # (~18 min with MSVC) instead of the one file that holds the body.
-+        # The sub_X_gen bodies need no declaration here: only the project's
-+        # wrapper calls them, and it declares them itself.
-         header_lines = [
-             "/**",
-             f" * {_config.banner_name(getattr(self, 'title', None))}"
-             f" - Recompiled Function Declarations",
--            f" * {stats['translated']} functions, auto-generated by tools/recomp",
-+            " * auto-generated by tools/recomp",
-             " */",
-             "",
-             "#ifndef RECOMP_FUNCS_H",
-@@ -3033,17 +3135,17 @@ class BatchTranslator:
-             '#include "recomp_types.h"',
-             "",
-         ]
-+        canonical = {}
-         for addr, name, _ in translations:
--            decl = self._make_declaration(addr, name)
-+            if name.endswith("_gen") and addr in manual_decls:
-+                continue                    # declared below by its wrapper name
-+            canonical[addr] = name
-+        for addr, name in manual_decls.items():
-+            canonical[addr] = name
-+        for addr in sorted(canonical):
-+            decl = self._make_declaration(addr, canonical[addr])
-             header_lines.append(f"{decl};")
- 
--        if manual_decls:
--            header_lines.append("")
--            header_lines.append("/* Hand-written overrides (defined by the project) */")
--            for addr in sorted(manual_decls):
--                header_lines.append(
--                    f"void {manual_decls[addr]}(void);  /* 0x{addr:08X} */")
--
-         if unresolved:
-             header_lines.append("")
-             header_lines.append("/* Unresolved call targets (stubbed) */")
-@@ -3162,10 +3264,13 @@ class BatchTranslator:
-                 "",
-                 "#define RECOMP_GENERATED_CODE",
-                 f'#include "{header_name}"',
-+                '#include <math.h>',
-                 "",
-             ]
-             stub_lines.append(
--                "/* Each stub consumes the return address its caller pushed,")
-+                "/* A target inside another function is that function's code entered")
-+            stub_lines.append(
-+                " * at the target (entry_stub). The rest: each stub consumes the return address its caller pushed,")
-             stub_lines.append(
-                 " * exactly as a real 'ret' would. An empty body leaves esp 4 bytes")
-             stub_lines.append(
-@@ -3181,7 +3286,26 @@ class BatchTranslator:
-             stub_lines.append(
-                 " * esp off by N on every call. */")
-             stub_lines.append("")
-+            entry_n = 0
-             for addr in sorted(unresolved):
-+                code = self.translator.entry_stub(addr, unresolved[addr])
-+                if code:
-+                    stub_lines.append(code)
-+                    entry_n += 1
-+                    continue
-+                epi = self.translator._stub_epilogue(addr)
-+                if epi and epi[0]:
-+                    # A shared epilogue: run it -- restore the registers it
-+                    # pops, then return (address + N bytes of arguments).
-+                    regs, n = epi
-+                    body = " ".join(f"g_{r} = MEM32(g_esp); g_esp += 4;"
-+                                    for r in regs)
-+                    note = "; ".join(f"pop {r}" for r in regs) + f"; ret {n}"
-+                    stub_lines.append(
-+                        f"void {unresolved[addr]}(void) {{ {body} g_esp += {4 + n}; "
-+                        f"/* 0x{addr:08X}: {note} */ }}"
-+                    )
-+                    continue
-                 popped = self.translator._stub_ret_bytes(addr)
-                 note = (f"ret {popped}" if popped else "not detected")
-                 stub_lines.append(

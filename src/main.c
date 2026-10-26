@@ -949,6 +949,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
      *     allocation returned 0, and its 0xA1 fill overwrote guest memory
      *     from address 0. */
     if (!getenv("RECOMP_HEAP_RECLAIM"))  _putenv_s("RECOMP_HEAP_RECLAIM", "1");
+    /*   RECOMP_CONTIG_AVOID_IMAGE: contiguous blocks start above the image's
+     *     pages. EA's heap leaves the rest of the window so full that XPP's
+     *     OHCI HCCA landed at physical 0x00202000, inside .text, and the USB
+     *     model read code as its interrupt table: the pad never enumerated. */
+    if (!getenv("RECOMP_CONTIG_AVOID_IMAGE")) _putenv_s("RECOMP_CONTIG_AVOID_IMAGE", "1");
     /*   RECOMP_NV2A_ACK_THREAD: the GPU executor runs asynchronously, as the
      *   NV2A does, instead of the title waiting for every batch to be drawn
      *   -- ~2x the frame rate in a race (9-12 vs 4-7 FPS). =0 for the old

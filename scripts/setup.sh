@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # One-time setup of the toolkit next to this repo, the way the work was done:
 #
-#   <parent>/xboxrecomp     sp00nznet/xboxrecomp at XBOXRECOMP_BASE + patches/xboxrecomp-local.patch
-#   <parent>/ssx3-recomp    this repo
-#   <parent>/SSX3           your own rip: default.xbe + data/ (not in git)
+#   <parent>/xboxrecomp-ssxot  sp00nznet/xboxrecomp at XBOXRECOMP_BASE + patches/xboxrecomp-local.patch
+#   <parent>/ssxot-recomp      this repo; game/ holds default.xbe + data/ (not in git)
+#
+# Its own toolkit folder, not ../xboxrecomp: SSX3-recomp patches that one
+# differently, and toolkit changes for this game must not reach its build.
 #
 # Also creates xboxrecomp/.venv with capstone. Safe to re-run.
 set -euo pipefail
@@ -13,7 +15,7 @@ XBOXRECOMP_URL=${XBOXRECOMP_URL:-https://github.com/sp00nznet/xboxrecomp.git}
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PARENT="$(dirname "$HERE")"
-TK="$PARENT/xboxrecomp"
+TK="$PARENT/xboxrecomp-ssxot"
 
 if [ ! -d "$TK/.git" ]; then
     git clone "$XBOXRECOMP_URL" "$TK"
