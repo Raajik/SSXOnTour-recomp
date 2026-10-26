@@ -192,3 +192,98 @@ void sub_0021E575(void)
     if (fs_trace_on())
         fprintf(stderr, "[FS]   lookup arc %08X \"%s\" -> %d\n", arc, m, (int)g_eax);
 }
+
+/*
+ * The front end's save natives (RECOMP_SAVE_TRACE=1): ActionScript calls
+ * them by name (registered next to "SetAutoSave" at 0x0009D10C). Logs each
+ * call and what it returns, to follow the autosave prompt's "Yes", which
+ * stops on "Saving Options" without a file call.
+ */
+static int save_trace_on(void)
+{
+    static int on = -1;
+    if (on < 0)
+        on = getenv("RECOMP_SAVE_TRACE") != NULL;
+    return on;
+}
+
+static void save_trace(const char *label, uint32_t a1, uint32_t a2)
+{
+    if (save_trace_on())
+        fprintf(stderr, "[SAVE] %s(%08X, %08X) -> %08X\n", label, a1, a2, g_eax);
+}
+
+extern void sub_00094560_gen(void);
+void sub_00094560(void)
+{
+    uint32_t a1 = MEM32(g_esp + 4), a2 = MEM32(g_esp + 8);
+    sub_00094560_gen();
+    save_trace("QuerySave", a1, a2);
+}
+
+extern void sub_00094680_gen(void);
+void sub_00094680(void)
+{
+    uint32_t a1 = MEM32(g_esp + 4), a2 = MEM32(g_esp + 8);
+    sub_00094680_gen();
+    save_trace("Save", a1, a2);
+}
+
+extern void sub_00094EB0_gen(void);
+void sub_00094EB0(void)
+{
+    uint32_t a1 = MEM32(g_esp + 4), a2 = MEM32(g_esp + 8);
+    sub_00094EB0_gen();
+    save_trace("SetAutoSave", a1, a2);
+}
+
+extern void sub_00095210_gen(void);
+void sub_00095210(void)
+{
+    uint32_t a1 = MEM32(g_esp + 4), a2 = MEM32(g_esp + 8);
+    sub_00095210_gen();
+    save_trace("IsMemCardDirtyFlag", a1, a2);
+}
+
+/* The storage thread's result posts (RECOMP_SAVE_TRACE=1): thiscall on the
+ * result block 0x003EEEF8 with (code, operation, ...); the front end reads
+ * the block back (sub_00226C8E). With the storage state at 0x003EF13C. */
+extern void sub_00225DEE_gen(void);
+void sub_00225DEE(void)
+{
+    if (save_trace_on())
+        fprintf(stderr, "[SAVE] post A code %X op %X arg %08X | state %X\n", MEM32(g_esp + 4),
+                MEM32(g_esp + 8), MEM32(g_esp + 12), MEM32(VA(0x003EF13C)));
+    sub_00225DEE_gen();
+}
+
+extern void sub_0022CF1C_gen(void);
+void sub_0022CF1C(void)
+{
+    if (save_trace_on())
+        fprintf(stderr, "[SAVE] post B code %X op %X arg %08X %08X | state %X\n", MEM32(g_esp + 4),
+                MEM32(g_esp + 8), MEM32(g_esp + 12), MEM32(g_esp + 16), MEM32(VA(0x003EF13C)));
+    sub_0022CF1C_gen();
+}
+
+/* The storage system's per-frame tick (RECOMP_SAVE_TRACE=1): sub_00226C8E(dt)
+ * adds dt to the "Saving..." minimum-display timer at 0x003EEB64 (+4
+ * elapsed, +8 duration, 3000 ms) when it is armed. Logs dt once a second. */
+extern void sub_00226C8E_gen(void);
+void sub_00226C8E(void)
+{
+    if (save_trace_on()) {
+        static DWORD last;
+        static unsigned calls;
+        DWORD now = GetTickCount();
+        calls++;
+        if (now - last >= 1000) {
+            fprintf(stderr, "[SAVE] tick dt %d (%u calls) timer armed %u elapsed %d of %d\n",
+                    (int)MEM32(g_esp + 4), calls, MEM8(VA(0x003EEB64)), (int)MEM32(VA(0x003EEB68)),
+                    (int)MEM32(VA(0x003EEB6C)));
+            last = now;
+            calls = 0;
+        }
+    }
+    sub_00226C8E_gen();
+}

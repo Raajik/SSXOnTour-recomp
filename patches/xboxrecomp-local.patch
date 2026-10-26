@@ -1595,7 +1595,7 @@ index b9a02bc..ee87394 100644
  
  NTSTATUS __stdcall xbox_NtQueryFullAttributesFile(
 diff --git i/src/kernel/kernel_bridge.c w/src/kernel/kernel_bridge.c
-index c65ba43..b8dbb5d 100644
+index c65ba43..8d764c8 100644
 --- i/src/kernel/kernel_bridge.c
 +++ w/src/kernel/kernel_bridge.c
 @@ -26,6 +26,7 @@
@@ -2547,7 +2547,69 @@ index c65ba43..b8dbb5d 100644
      g_eax = va;
  }
  
-@@ -9371,17 +9924,221 @@ static int guest_cpu_enabled(void)
+@@ -7500,9 +8053,11 @@ static void bridge_NtCreateTimer(void)
+     HANDLE h;
+ 
+     (void)STACK_ARG(1);
+-    (void)STACK_ARG(2);
+ 
+-    h = CreateWaitableTimerW(NULL, TRUE, NULL);
++    /* TimerType 0 = NotificationTimer (stays signalled), 1 =
++     * SynchronizationTimer (released waiter resets it): XAPI's
++     * CreateWaitableTimer(bManualReset = FALSE) asks for the second. */
++    h = CreateWaitableTimerW(NULL, STACK_ARG(2) == 0, NULL);
+     if (!h) {
+         fprintf(stderr, "  [KERNEL] NtCreateTimer: CreateWaitableTimerW failed (error %u)\n",
+                 GetLastError());
+@@ -7662,17 +8217,38 @@ static void bridge_NtSetIoCompletion(void)
+ }
+ 
+ /* --- NtSetTimerEx (ordinal 229, 8 args = 32 bytes) --- */
++/* NTSTATUS NtSetTimerEx(HANDLE TimerHandle, PLARGE_INTEGER DueTime,
++ *                       PTIMER_APC_ROUTINE TimerApcRoutine, KPROCESSOR_MODE
++ *                       ApcMode, PVOID TimerContext, BOOLEAN WakeTimer,
++ *                       LONG Period, PBOOLEAN PreviousState);
++ * XAPI's SetWaitableTimer. It used to succeed without arming anything, so a
++ * title clocked by a waitable timer never ticked: SSX On Tour's 60 Hz frame
++ * clock thread (guest 0x00222E71) waits on one and re-arms it each time,
++ * and the "Saving..." screen waits on that clock for its 3 s minimum, so
++ * every save hung. A timer APC is not delivered (none seen yet). */
+ static void bridge_NtSetTimerEx(void)
+ {
+-    (void)STACK_ARG(0);
+-    (void)STACK_ARG(1);
+-    (void)STACK_ARG(2);
+-    (void)STACK_ARG(3);
+-    (void)STACK_ARG(4);
+-    (void)STACK_ARG(5);
+-    (void)STACK_ARG(6);
+-    (void)STACK_ARG(7);
+-    g_eax = 0;
++    HANDLE   h       = bridge_resolve_handle(STACK_ARG(0));
++    uint32_t due_va  = STACK_ARG(1);
++    uint32_t apc     = STACK_ARG(2);
++    LONG     period  = (LONG)STACK_ARG(6);
++    uint32_t prev_va = STACK_ARG(7);
++    LARGE_INTEGER due;
++
++    if (!h || !due_va) {
++        g_eax = 0xC0000008u;                /* STATUS_INVALID_HANDLE */
++        return;
++    }
++    due.QuadPart = (LONGLONG)((uint64_t)BRIDGE_MEM32(due_va)
++                              | ((uint64_t)BRIDGE_MEM32(due_va + 4) << 32));
++    if (apc) {
++        static int warned;
++        if (!warned++)
++            fprintf(stderr, "  [KERNEL] NtSetTimerEx: timer APC 0x%08X not delivered\n", apc);
++    }
++    if (prev_va)
++        BRIDGE_MEM8(prev_va) = 0;
++    g_eax = SetWaitableTimer(h, &due, period, NULL, NULL, FALSE) ? 0 : 0xC000000Du;
+ }
+ 
+ /* --- NtSignalAndWaitForSingleObjectEx (ordinal 230, 5 args = 20 bytes) --- */
+@@ -9371,17 +9947,221 @@ static int guest_cpu_enabled(void)
      return g_guest_cpu_on;
  }
  
@@ -2770,7 +2832,7 @@ index c65ba43..b8dbb5d 100644
  void guest_cpu_part(void)
  {
      if (t_guest_held) {
-@@ -9391,11 +10148,160 @@ void guest_cpu_part(void)
+@@ -9391,11 +10171,160 @@ void guest_cpu_part(void)
      t_guest_thread = 0;
  }
  
@@ -2932,7 +2994,7 @@ index c65ba43..b8dbb5d 100644
      if (held) {                        /* let other guest threads run meanwhile */
          t_guest_held = 0;
          LeaveCriticalSection(&g_guest_cpu);
-@@ -9403,11 +10309,16 @@ static void kernel_thunk_dispatch(void)
+@@ -9403,11 +10332,16 @@ static void kernel_thunk_dispatch(void)
      t_dispatch_depth++;
      kernel_thunk_dispatch_body();
      t_dispatch_depth--;
@@ -2950,7 +3012,7 @@ index c65ba43..b8dbb5d 100644
          t_guest_held = 1;
      }
      (void)held;
-@@ -9447,9 +10358,9 @@ static void kernel_thunk_dispatch_body(void)
+@@ -9447,9 +10381,9 @@ static void kernel_thunk_dispatch_body(void)
  
      {
          static DWORD last_summary_tick = 0;
@@ -2962,7 +3024,7 @@ index c65ba43..b8dbb5d 100644
              fprintf(stderr, "  [KERNEL] summary: %lld total calls, latest ordinal %u (slot %d) esp=0x%08X\n",
                      g_kernel_call_count, ordinal, slot, g_esp);
              /* And which ones, ranked. "Latest" names whatever the sample
-@@ -9671,7 +10582,7 @@ void xbox_kernel_bridge_init(void)
+@@ -9671,7 +10605,7 @@ void xbox_kernel_bridge_init(void)
      /* The thunk table lives in .rdata which is marked PAGE_READONLY.
       * Temporarily make it writable so we can patch the ordinals. */
      VirtualProtect(
@@ -2971,7 +3033,7 @@ index c65ba43..b8dbb5d 100644
          g_thunk_table_count * 4,
          PAGE_READWRITE,
          &old_protect
-@@ -9749,7 +10660,7 @@ void xbox_kernel_bridge_init(void)
+@@ -9749,7 +10683,7 @@ void xbox_kernel_bridge_init(void)
          DWORD scan_protect;
          uint32_t low = g_thunk_table_base - LOOKBEHIND * 4;
  
@@ -2980,7 +3042,7 @@ index c65ba43..b8dbb5d 100644
                         LOOKBEHIND * 4, PAGE_READWRITE, &scan_protect);
  
          for (i = 1; i <= LOOKBEHIND; i++) {
-@@ -9778,13 +10689,13 @@ void xbox_kernel_bridge_init(void)
+@@ -9778,13 +10712,13 @@ void xbox_kernel_bridge_init(void)
                      va, g_slot_ordinals[slot], slot);
          }
  
@@ -10053,10 +10115,10 @@ index 0000000..45b6a74
 +#endif
 diff --git 1/src/kernel/kernel_mods.c 2/src/kernel/kernel_mods.c
 new file mode 100644
-index 0000000..3d8849d
+index 0000000..81443de
 --- /dev/null
 +++ 2/src/kernel/kernel_mods.c
-@@ -0,0 +1,128 @@
+@@ -0,0 +1,127 @@
 +/* Asset mods: whole-file overrides of the game folder (kernel_mods.h). */
 +#include "kernel_mods.h"
 +
@@ -10138,9 +10200,8 @@ index 0000000..3d8849d
 +}
 +
 +/* RECOMP_EMPTY_FILES=<glob>[;<glob>...]: game files that match read as
-+ * empty, as if a mod replaced them with a 0-byte file. A title whose
-+ * intro movies stall here (SSX On Tour: the movie's audio stream never
-+ * plays, and the video waits for it) skips them this way. */
++ * empty, as if a mod replaced them with a 0-byte file: a project skips
++ * its title's intro movies this way (SSX On Tour). */
 +static int empty_match(const char *rel)
 +{
 +    const char *e = getenv("RECOMP_EMPTY_FILES");

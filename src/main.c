@@ -954,11 +954,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
      *     OHCI HCCA landed at physical 0x00202000, inside .text, and the USB
      *     model read code as its interrupt table: the pad never enumerated. */
     if (!getenv("RECOMP_CONTIG_AVOID_IMAGE")) _putenv_s("RECOMP_CONTIG_AVOID_IMAGE", "1");
-    /*   RECOMP_EMPTY_FILES: the movies read as empty files, so the game skips
-     *     them. A movie's audio stream never plays here, and its video waits
-     *     for that clock: the EA SPORTS BIG intro stopped boot on its first
-     *     frame. RECOMP_EMPTY_FILES= (empty) plays them. */
-    if (!getenv("RECOMP_EMPTY_FILES"))   _putenv_s("RECOMP_EMPTY_FILES", "data/movies/*.vp6");
+    /*   RECOMP_EMPTY_FILES: skip the intro (the EA SPORTS BIG logo and the
+     *     intro movie read as empty files, and the game passes them), as SSX 3
+     *     skips its intro. RECOMP_SKIP_INTRO=0, or RECOMP_EMPTY_FILES set to
+     *     anything else, plays them. */
+    {
+        const char *skip = getenv("RECOMP_SKIP_INTRO");
+        if (!getenv("RECOMP_EMPTY_FILES") && !(skip && skip[0] == '0'))
+            _putenv_s("RECOMP_EMPTY_FILES", "data/movies/bigEnna.vp6;data/movies/introna.vp6");
+    }
     /*   RECOMP_NV2A_ACK_THREAD: the GPU executor runs asynchronously, as the
      *   NV2A does, instead of the title waiting for every batch to be drawn
      *   -- ~2x the frame rate in a race (9-12 vs 4-7 FPS). =0 for the old
