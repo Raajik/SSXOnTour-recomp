@@ -30,7 +30,8 @@ mkdir -p "$DEST/mods"
 for m in "$HERE"/mods/*/; do
     [ -d "$m" ] && { rm -rf "$DEST/mods/$(basename "$m")"; cp -rL "$m" "$DEST/mods/"; }
 done
-[ -f "$HERE/mods/load-order.txt" ] && cp "$HERE/mods/load-order.txt" "$DEST/mods/"
+# A folder made before keeps its load order (the mods the player ticked).
+[ -f "$HERE/mods/load-order.txt" ] && [ ! -f "$DEST/mods/load-order.txt" ] && cp "$HERE/mods/load-order.txt" "$DEST/mods/"
 cp "$HERE/keys.example.ini" "$DEST/"
 [ -f "$HERE/keys.ini" ] && cp "$HERE/keys.ini" "$DEST/"
 # The launcher's settings, without the game folder path: it then finds game/ itself.
@@ -54,6 +55,14 @@ EOS
 }
 start_script "$DEST/Play SSX On Tour.sh" "--play"
 start_script "$DEST/SSX On Tour Settings.sh" ""
+cat > "$DEST/Play and collect textures.sh" <<'EOS'
+#!/bin/sh
+# As "Play SSX On Tour.sh", and each texture the game shows for the first time is saved to
+# texdump/, to build the upscaled packs from (tools/upscale_pack.sh in ssxot-recomp).
+here=$(cd "$(dirname "$0")" && pwd)
+RECOMP_TEX_DUMP="$here/texdump" exec "$here/Play SSX On Tour.sh"
+EOS
+chmod +x "$DEST/Play and collect textures.sh"
 
 cat > "$DEST/install-shortcuts.sh" <<'EOS'
 #!/bin/sh
@@ -85,12 +94,15 @@ cat > "$DEST/README.txt" <<'EOS'
 SSX On Tour -- native Linux (static recompilation), your own copy
 ================================================================
 
-Start it one of three ways:
+Start it one of these ways:
 
   Play SSX On Tour.sh      the game, straight away, with the settings you last
                            chose. Works with only a controller: use this one in Steam.
   SSX On Tour Settings.sh  the settings window (resolution, Ink & Color, mods,
                            controllers); its Play button starts the game.
+  Play and collect textures.sh
+                           as Play, and saves each texture the game shows to
+                           texdump/, for making the upscaled packs cover more.
   install-shortcuts.sh     puts both in your app menu, and shows how to add
                            "Play SSX On Tour" to Steam (Games > Add a Non-Steam Game).
 
