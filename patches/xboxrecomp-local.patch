@@ -13,7 +13,7 @@ index 0bd4ebd..70568cb 100644
      # Linux: platform layer (Win32 primitives on POSIX) + SDL2 audio + libm
      find_package(SDL2 REQUIRED)
 diff --git i/src/apu/apu_core.c w/src/apu/apu_core.c
-index 258048c..6eafd90 100644
+index 258048c..8966f89 100644
 --- i/src/apu/apu_core.c
 +++ w/src/apu/apu_core.c
 @@ -20,6 +20,7 @@
@@ -24,15 +24,23 @@ index 258048c..6eafd90 100644
  #include "apu.h"
  #include "apu_xaudio2.h"
  #include "fpconv.h"
-@@ -77,10 +78,10 @@ uint8_t *mcpx_apu_phys(uint64_t addr)
+@@ -71,16 +72,16 @@ void mcpx_debug_end_frame(void) {}
+  * buffer never reported that it had stopped, and Burnout 3's frontend waits
+  * on exactly that (IDirectSoundBuffer::GetStatus, polled forever). */
+ extern uint32_t g_xbox_image_lo, g_xbox_image_hi;
+-extern uint32_t xbox_ContiguousAllocatedBytes(void);
++extern int xbox_ContiguousOwns(uint32_t phys);
+ 
+ uint8_t *mcpx_apu_phys(uint64_t addr)
  {
      uint32_t a = (uint32_t)addr & 0x0FFFFFFFu;
      if (a >= g_xbox_image_lo && a < g_xbox_image_hi)
 -        return g_apu_ram_ptr + a;
-+        return XBOX_HOST(a);
-     if (a < xbox_ContiguousAllocatedBytes())
+-    if (a < xbox_ContiguousAllocatedBytes())
 -        return g_apu_ram_ptr + 0x80000000u + a;
 -    return g_apu_ram_ptr + (a & 0x03FFFFFFu);
++        return XBOX_HOST(a);
++    if (xbox_ContiguousOwns(a))
 +        return XBOX_HOST(0x80000000u + a);
 +    return XBOX_HOST(a & 0x03FFFFFFu);
  }
@@ -1923,7 +1931,7 @@ index b9a02bc..ee87394 100644
  
  NTSTATUS __stdcall xbox_NtQueryFullAttributesFile(
 diff --git i/src/kernel/kernel_bridge.c w/src/kernel/kernel_bridge.c
-index c65ba43..6452176 100644
+index c65ba43..6202088 100644
 --- i/src/kernel/kernel_bridge.c
 +++ w/src/kernel/kernel_bridge.c
 @@ -26,6 +26,7 @@
@@ -2016,7 +2024,16 @@ index c65ba43..6452176 100644
      else
          fprintf(stderr, "  [KERNEL] MmAllocateSystemMemory: %u bytes REFUSED\n",
                  size);
-@@ -788,7 +785,7 @@ static void bridge_MmAllocateContiguousMemoryEx(void)
+@@ -783,12 +780,16 @@ static void bridge_MmAllocateContiguousMemoryEx(void)
+      */
+     if (low && high >= low && (high - low + 1) <= size + 0x1000) {
+         xbox_va = XBOX_PHYSICAL_MIRROR_BASE + low;
++        {
++            extern void xbox_ContiguousClaimPinned(uint32_t phys, uint32_t size);
++            xbox_ContiguousClaimPinned(low, size);
++        }
+ 
+         /* The console hands out zeroed pages here, and titles rely on it:
           * pool headers and free-list roots are assumed clear, so whatever the
           * backing view happened to contain shows up later as structures that
           * are "allocated" but full of garbage. */
@@ -2025,7 +2042,7 @@ index c65ba43..6452176 100644
  
          if (KERNEL_LOG_ON_HALF()) {
              fprintf(stderr, "  [KERNEL] MmAllocateContiguousMemoryEx: size=%u "
-@@ -801,7 +798,10 @@ static void bridge_MmAllocateContiguousMemoryEx(void)
+@@ -801,7 +802,10 @@ static void bridge_MmAllocateContiguousMemoryEx(void)
      }
  
      if (align < 4096) align = 4096;
@@ -2037,7 +2054,7 @@ index c65ba43..6452176 100644
  
      if (KERNEL_LOG_ON_HALF()) {
          fprintf(stderr, "  [KERNEL] MmAllocateContiguousMemoryEx: size=%u align=%u → Xbox VA 0x%08X\n",
-@@ -1275,7 +1275,7 @@ static void bridge_ExQueryNonVolatileSetting(void)
+@@ -1275,7 +1279,7 @@ static void bridge_ExQueryNonVolatileSetting(void)
      NTSTATUS st = xbox_ExQueryNonVolatileSetting(
          value_index,
          type_va   ? (PULONG)&BRIDGE_MEM32(type_va)   : NULL,
@@ -2046,7 +2063,7 @@ index c65ba43..6452176 100644
          value_length,
          result_va ? (PULONG)&BRIDGE_MEM32(result_va) : NULL);
  
-@@ -1514,6 +1514,31 @@ static HANDLE bridge_resolve_handle(uint32_t token);
+@@ -1514,6 +1518,31 @@ static HANDLE bridge_resolve_handle(uint32_t token);
  static HANDLE ke_guest_event(uint32_t guest_va, int *type);
  
  /* ── KeSetEvent (ordinal 145) ────────────────────────────── */
@@ -2078,7 +2095,7 @@ index c65ba43..6452176 100644
  static void bridge_KeSetEvent(void)
  {
      uint32_t guest_va = STACK_ARG(0);
-@@ -1528,12 +1553,14 @@ static void bridge_KeSetEvent(void)
+@@ -1528,12 +1557,14 @@ static void bridge_KeSetEvent(void)
          int type;
          HANDLE ge = ke_guest_event(guest_va, &type);
          if (ge) {
@@ -2093,7 +2110,7 @@ index c65ba43..6452176 100644
      h = ke_shadow_lookup(guest_va);
      if (!h)
          h = bridge_resolve_handle(guest_va);
-@@ -1545,6 +1572,21 @@ static void bridge_KeSetEvent(void)
+@@ -1545,6 +1576,21 @@ static void bridge_KeSetEvent(void)
          g_eax = 0;
  }
  
@@ -2115,7 +2132,7 @@ index c65ba43..6452176 100644
  /* ── KeWaitForSingleObject (ordinal 159) ─────────────────── */
  static void bridge_KeWaitForSingleObject(void)
  {
-@@ -1560,6 +1602,7 @@ static void bridge_KeWaitForSingleObject(void)
+@@ -1560,6 +1606,7 @@ static void bridge_KeWaitForSingleObject(void)
           * writing 0 there -- so bring the host event in line first. */
          int type;
          HANDLE ge = ke_guest_event(object, &type);
@@ -2123,7 +2140,7 @@ index c65ba43..6452176 100644
          if (ge) {
              if (BRIDGE_MEM32(object + 4) == 0) {
                  ResetEvent(ge);
-@@ -2028,6 +2071,21 @@ static int kernel_run_dpc(uint32_t dpc_va, uint32_t arg1, uint32_t arg2)
+@@ -2028,6 +2075,21 @@ static int kernel_run_dpc(uint32_t dpc_va, uint32_t arg1, uint32_t arg2)
      BRIDGE_MEM32(dpc_va + 20) = arg1;
      BRIDGE_MEM32(dpc_va + 24) = arg2;
  
@@ -2145,7 +2162,7 @@ index c65ba43..6452176 100644
      g_esp -= 4; BRIDGE_MEM32(g_esp) = arg2;
      g_esp -= 4; BRIDGE_MEM32(g_esp) = arg1;
      g_esp -= 4; BRIDGE_MEM32(g_esp) = context;
-@@ -2251,26 +2309,56 @@ static int kernel_raise_interrupt(uint32_t vector)
+@@ -2251,26 +2313,56 @@ static int kernel_raise_interrupt(uint32_t vector)
  #define NV2A_PCRTC_INTR_VBLANK (1u << 0)
  #define NV2A_VECTOR            3u
  
@@ -2209,7 +2226,7 @@ index c65ba43..6452176 100644
      BRIDGE_MEM32(XBOX_NV2A_REG_BASE + NV2A_PMC_INTR_0)   |= NV2A_PMC_INTR_PCRTC;
  
      {
-@@ -2284,6 +2372,222 @@ static void kernel_vblank_tick(void)
+@@ -2284,6 +2376,222 @@ static void kernel_vblank_tick(void)
      }
  }
  
@@ -2432,7 +2449,7 @@ index c65ba43..6452176 100644
  /* Run whatever is queued. Called from the timer thread, which has the guest
   * stack and TIB that a deferred routine needs. */
  static void kernel_drain_dpcs(void)
-@@ -2532,15 +2836,37 @@ static void bridge_KeInitializeTimerEx(void)
+@@ -2532,15 +2840,37 @@ static void bridge_KeInitializeTimerEx(void)
  typedef struct {
      uint32_t timer_va;      /* the guest KTIMER, 0 for a free slot */
      uint32_t dpc_va;
@@ -2471,7 +2488,7 @@ index c65ba43..6452176 100644
      int slot = xbox_worker_stack_alloc();
  
      (void)unused;
-@@ -2566,14 +2892,34 @@ static DWORD WINAPI kernel_timer_thread(LPVOID unused)
+@@ -2566,14 +2896,34 @@ static DWORD WINAPI kernel_timer_thread(LPVOID unused)
          g_fs_base = tib;
      }
  
@@ -2509,7 +2526,7 @@ index c65ba43..6452176 100644
  
          for (i = 0; i < XBOX_MAX_TIMERS; i++) {
              uint32_t dpc, fired_va;
-@@ -2585,20 +2931,53 @@ static DWORD WINAPI kernel_timer_thread(LPVOID unused)
+@@ -2585,20 +2935,53 @@ static DWORD WINAPI kernel_timer_thread(LPVOID unused)
              }
              fired_va = g_timers[i].timer_va;
              dpc = g_timers[i].dpc_va;
@@ -2567,7 +2584,7 @@ index c65ba43..6452176 100644
                  if (ev) {
                      SetEvent(ev);
                      BRIDGE_MEM32(fired_va + 4) = 1;   /* SignalState */
-@@ -2612,7 +2991,9 @@ static DWORD WINAPI kernel_timer_thread(LPVOID unused)
+@@ -2612,7 +2995,9 @@ static DWORD WINAPI kernel_timer_thread(LPVOID unused)
  static void kernel_set_timer(uint32_t timer_va, long long due_100ns,
                               long period_ms, uint32_t dpc_va)
  {
@@ -2578,7 +2595,7 @@ index c65ba43..6452176 100644
      int i, free_slot = -1;
      uint32_t was_set = 0;
  
-@@ -2630,11 +3011,35 @@ static void kernel_set_timer(uint32_t timer_va, long long due_100ns,
+@@ -2630,11 +3015,35 @@ static void kernel_set_timer(uint32_t timer_va, long long due_100ns,
      if (free_slot >= 0) {
          g_timers[free_slot].timer_va  = timer_va;
          g_timers[free_slot].dpc_va    = dpc_va;
@@ -2615,7 +2632,7 @@ index c65ba43..6452176 100644
      /* A freshly set timer starts unsignaled, like the real KeSetTimer. */
      {
          HANDLE ev = ke_shadow_lookup(timer_va);
-@@ -2966,6 +3371,7 @@ static NTSTATUS bridge_create_file_impl(
+@@ -2966,6 +3375,7 @@ static NTSTATUS bridge_create_file_impl(
          bridge_write_handle(handle_va, h);
          bridge_write_iostatus(iostatus_va, ios.Status, (uint32_t)ios.Information);
      } else {
@@ -2623,7 +2640,7 @@ index c65ba43..6452176 100644
          bridge_write_iostatus(iostatus_va, st, 0);
      }
      return st;
-@@ -3113,14 +3519,31 @@ static void bridge_NtCreateFile(void)
+@@ -3113,14 +3523,31 @@ static void bridge_NtCreateFile(void)
      {
          extern uint32_t xbox_LastFileError(void);
          uint32_t _e = g_eax ? xbox_LastFileError() : 0u;
@@ -2658,7 +2675,7 @@ index c65ba43..6452176 100644
      }
      fflush(stderr);
  }
-@@ -3159,6 +3582,16 @@ static void bridge_NtOpenFile(void)
+@@ -3159,6 +3586,16 @@ static void bridge_NtOpenFile(void)
   */
  recomp_func_t recomp_lookup_kernel(uint32_t xbox_va);
  
@@ -2675,7 +2692,7 @@ index c65ba43..6452176 100644
  static void deliver_one_apc(uint32_t apc_routine, uint32_t apc_context,
                              uint32_t iostatus)
  {
-@@ -3175,7 +3608,11 @@ static void deliver_one_apc(uint32_t apc_routine, uint32_t apc_context,
+@@ -3175,7 +3612,11 @@ static void deliver_one_apc(uint32_t apc_routine, uint32_t apc_context,
          g_esp -= 4; BRIDGE_MEM32(g_esp) = iostatus;
          g_esp -= 4; BRIDGE_MEM32(g_esp) = apc_context;
          g_esp -= 4; BRIDGE_MEM32(g_esp) = 0;   /* dummy return address */
@@ -2688,7 +2705,7 @@ index c65ba43..6452176 100644
          g_esp += 12;
      } else {
          uint32_t ord = 0;
-@@ -3399,6 +3836,20 @@ static int bridge_async_io_enabled(void)
+@@ -3399,6 +3840,20 @@ static int bridge_async_io_enabled(void)
      return on;
  }
  
@@ -2709,7 +2726,7 @@ index c65ba43..6452176 100644
  /* ── NtReadFile (ordinal 219, 8 args = 32 bytes) ──────── */
  static void bridge_NtReadFile(void)
  {
-@@ -3436,7 +3887,9 @@ static void bridge_NtReadFile(void)
+@@ -3436,7 +3891,9 @@ static void bridge_NtReadFile(void)
           * whatever precedes the file it actually wants, and a read that stops
           * early looks identical to one that never started -- until you can
           * see where each one landed. */
@@ -2720,7 +2737,7 @@ index c65ba43..6452176 100644
              fprintf(stderr, "  [READ] from=0x%08X ev=%08X apc=%08X @%lld want=%u got=%u st=0x%08X  %02X %02X %02X %02X\n",
                      g_xbox_kernel_caller, STACK_ARG(1), STACK_ARG(2),
                      (long long)off.QuadPart, length, got,
-@@ -3542,6 +3995,53 @@ static void bridge_NtSetInformationFile(void)
+@@ -3542,6 +3999,53 @@ static void bridge_NtSetInformationFile(void)
          g_eax = 0xC0000005u;                 /* STATUS_ACCESS_VIOLATION */
          return;
      }
@@ -2774,7 +2791,7 @@ index c65ba43..6452176 100644
      g_eax = (uint32_t)xbox_NtSetInformationFile(handle, &ios,
                  XBOX_TO_NATIVE(info_va), length,
                  (XBOX_FILE_INFORMATION_CLASS)infoclass);
-@@ -4155,8 +4655,31 @@ static void bridge_KeQueryBasePriorityThread(void)
+@@ -4155,8 +4659,31 @@ static void bridge_KeQueryBasePriorityThread(void)
          XBOX_TO_NATIVE(STACK_ARG(0)));
  }
  
@@ -2806,7 +2823,7 @@ index c65ba43..6452176 100644
      g_eax = (uint32_t)xbox_KeSetBasePriorityThread(
          XBOX_TO_NATIVE(STACK_ARG(0)), (LONG)STACK_ARG(1));
  }
-@@ -4472,15 +4995,49 @@ static void bridge_KeWaitForMultipleObjects(void)
+@@ -4472,15 +4999,49 @@ static void bridge_KeWaitForMultipleObjects(void)
      }
      if (count > BRIDGE_MAXIMUM_WAIT_OBJECTS)
          count = BRIDGE_MAXIMUM_WAIT_OBJECTS;
@@ -2859,7 +2876,7 @@ index c65ba43..6452176 100644
  }
  
  #undef BRIDGE_MAXIMUM_WAIT_OBJECTS
-@@ -6792,7 +7349,7 @@ static void bridge_IoAllocateIrp(void)
+@@ -6792,7 +7353,7 @@ static void bridge_IoAllocateIrp(void)
      (void)charge_quota;
      va = xbox_HeapAlloc(total, 16);
      if (va)
@@ -2868,7 +2885,7 @@ index c65ba43..6452176 100644
      else
          fprintf(stderr, "  [KERNEL] IoAllocateIrp: %u bytes REFUSED\n", total);
      g_eax = va;
-@@ -7349,8 +7906,7 @@ static void bridge_KeSetPriorityProcess(void)
+@@ -7349,8 +7910,7 @@ static void bridge_KeSetPriorityProcess(void)
  /* --- KeSetPriorityThread (ordinal 148, 2 args = 8 bytes) --- */
  static void bridge_KeSetPriorityThread(void)
  {
@@ -2878,7 +2895,7 @@ index c65ba43..6452176 100644
      g_eax = 0;
  }
  
-@@ -7424,7 +7980,7 @@ static void bridge_MmDbgAllocateMemory(void)
+@@ -7424,7 +7984,7 @@ static void bridge_MmDbgAllocateMemory(void)
      }
      va = xbox_HeapAlloc(size, 16);
      if (va)
@@ -2887,7 +2904,7 @@ index c65ba43..6452176 100644
      g_eax = va;
  }
  
-@@ -7500,9 +8056,15 @@ static void bridge_NtCreateTimer(void)
+@@ -7500,9 +8060,15 @@ static void bridge_NtCreateTimer(void)
      HANDLE h;
  
      (void)STACK_ARG(1);
@@ -2905,7 +2922,7 @@ index c65ba43..6452176 100644
      if (!h) {
          fprintf(stderr, "  [KERNEL] NtCreateTimer: CreateWaitableTimerW failed (error %u)\n",
                  GetLastError());
-@@ -7662,17 +8224,43 @@ static void bridge_NtSetIoCompletion(void)
+@@ -7662,17 +8228,43 @@ static void bridge_NtSetIoCompletion(void)
  }
  
  /* --- NtSetTimerEx (ordinal 229, 8 args = 32 bytes) --- */
@@ -2958,7 +2975,7 @@ index c65ba43..6452176 100644
  }
  
  /* --- NtSignalAndWaitForSingleObjectEx (ordinal 230, 5 args = 20 bytes) --- */
-@@ -9371,17 +9959,221 @@ static int guest_cpu_enabled(void)
+@@ -9371,17 +9963,221 @@ static int guest_cpu_enabled(void)
      return g_guest_cpu_on;
  }
  
@@ -3181,7 +3198,7 @@ index c65ba43..6452176 100644
  void guest_cpu_part(void)
  {
      if (t_guest_held) {
-@@ -9391,11 +10183,160 @@ void guest_cpu_part(void)
+@@ -9391,11 +10187,160 @@ void guest_cpu_part(void)
      t_guest_thread = 0;
  }
  
@@ -3343,7 +3360,7 @@ index c65ba43..6452176 100644
      if (held) {                        /* let other guest threads run meanwhile */
          t_guest_held = 0;
          LeaveCriticalSection(&g_guest_cpu);
-@@ -9403,11 +10344,16 @@ static void kernel_thunk_dispatch(void)
+@@ -9403,11 +10348,16 @@ static void kernel_thunk_dispatch(void)
      t_dispatch_depth++;
      kernel_thunk_dispatch_body();
      t_dispatch_depth--;
@@ -3361,7 +3378,7 @@ index c65ba43..6452176 100644
          t_guest_held = 1;
      }
      (void)held;
-@@ -9447,9 +10393,9 @@ static void kernel_thunk_dispatch_body(void)
+@@ -9447,9 +10397,9 @@ static void kernel_thunk_dispatch_body(void)
  
      {
          static DWORD last_summary_tick = 0;
@@ -3373,7 +3390,7 @@ index c65ba43..6452176 100644
              fprintf(stderr, "  [KERNEL] summary: %lld total calls, latest ordinal %u (slot %d) esp=0x%08X\n",
                      g_kernel_call_count, ordinal, slot, g_esp);
              /* And which ones, ranked. "Latest" names whatever the sample
-@@ -9671,7 +10617,7 @@ void xbox_kernel_bridge_init(void)
+@@ -9671,7 +10621,7 @@ void xbox_kernel_bridge_init(void)
      /* The thunk table lives in .rdata which is marked PAGE_READONLY.
       * Temporarily make it writable so we can patch the ordinals. */
      VirtualProtect(
@@ -3382,7 +3399,7 @@ index c65ba43..6452176 100644
          g_thunk_table_count * 4,
          PAGE_READWRITE,
          &old_protect
-@@ -9749,7 +10695,7 @@ void xbox_kernel_bridge_init(void)
+@@ -9749,7 +10699,7 @@ void xbox_kernel_bridge_init(void)
          DWORD scan_protect;
          uint32_t low = g_thunk_table_base - LOOKBEHIND * 4;
  
@@ -3391,7 +3408,7 @@ index c65ba43..6452176 100644
                         LOOKBEHIND * 4, PAGE_READWRITE, &scan_protect);
  
          for (i = 1; i <= LOOKBEHIND; i++) {
-@@ -9778,13 +10724,13 @@ void xbox_kernel_bridge_init(void)
+@@ -9778,13 +10728,13 @@ void xbox_kernel_bridge_init(void)
                      va, g_slot_ordinals[slot], slot);
          }
  
@@ -4977,7 +4994,7 @@ index 4ebdfb9..2134e8a 100644
          xbox_log(XBOX_LOG_WARN, XBOX_LOG_XBOX,
              "ExQueryNonVolatileSetting: unhandled index 0x%02X", ValueIndex);
 diff --git i/src/kernel/nv2a_pb_exec.c w/src/kernel/nv2a_pb_exec.c
-index c65632c..c6b9cb6 100644
+index c65632c..9105c65 100644
 --- i/src/kernel/nv2a_pb_exec.c
 +++ w/src/kernel/nv2a_pb_exec.c
 @@ -25,6 +25,7 @@
@@ -5001,6 +5018,24 @@ index c65632c..c6b9cb6 100644
  #define NV_TLS __thread
  #endif
  
+@@ -96,7 +99,7 @@ static int surface_hits_image(uint32_t base, uint32_t bytes)
+  */
+ static uint32_t dma_resolve(uint32_t offset)
+ {
+-    extern uint32_t xbox_ContiguousAllocatedBytes(void);
++    extern int xbox_ContiguousOwns(uint32_t phys);
+ 
+     /* Did this runtime hand the offset out as contiguous memory? Then the
+      * bytes live in the window, and that is not a guess: the arena is a bump
+@@ -112,7 +115,7 @@ static uint32_t dma_resolve(uint32_t offset)
+      * black straight through the guest heap -- which faulted the title three
+      * frames later on a pointer that had been overwritten, while the real
+      * framebuffer at 0x80A6C000 stayed untouched and the screen stayed black. */
+-    if (offset < xbox_ContiguousAllocatedBytes())
++    if (xbox_ContiguousOwns(offset))
+         return XBOX_CONTIG_BASE + offset;
+     if (!surface_hits_image(offset, 1))
+         return offset;
 @@ -188,6 +191,9 @@ static int surface_write_refused(uint32_t base, uint32_t bytes, const char *what
  #define NV097_FLIP_INCREMENT_WRITE        0x012C
  #define NV097_FLIP_STALL                  0x0130
@@ -6626,7 +6661,7 @@ index c65632c..c6b9cb6 100644
      case 0x17C8:                                  /* CLEAR_REPORT_VALUE */
          s_gpu.zpass_count = 0;
          break;
-@@ -2980,13 +4023,16 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -2980,13 +4023,25 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
           * starts the slot at 0xFFFFFFFF) sees every test incomplete. Burnout
           * 3 culls its world with these, so the race's main view drew only
           * the sky while the cube-map passes, which do not test, drew it all.
@@ -6637,18 +6672,28 @@ index c65632c..c6b9cb6 100644
 +         * the field (see xbox_ContiguousAllocRange). */
          uint8_t *mem = (uint8_t *)xbox_GetMemoryOffset();
 -        uint32_t at = dma_resolve(param & 0x00FFFFFFu);
-+        uint32_t at = dma_resolve(s_gpu.report_base + (param & 0x00FFFFFFu));
-         uint64_t stamp = (uint64_t)s_gpu.reports++ * 1000u;
+-        uint64_t stamp = (uint64_t)s_gpu.reports++ * 1000u;
 -        memcpy(mem + at, &stamp, 8);
 -        memcpy(mem + at + 8, &s_gpu.zpass_count, 4);
 -        memset(mem + at + 12, 0, 4);
++        uint32_t phys = s_gpu.report_base + (param & 0x00FFFFFFu);
++        uint32_t at;
++        uint64_t stamp;
++        if (phys < s_gpu.report_base || phys + 16u > 64u * 1024u * 1024u) {
++            static int warned;
++            if (!warned++)
++                fprintf(stderr, "  [GPU] GET_REPORT at physical %08X is outside RAM; not written\n", phys);
++            break;
++        }
++        at = dma_resolve(phys);
++        stamp = (uint64_t)s_gpu.reports++ * 1000u;
 +        memcpy(XBOX_HOST(at), &stamp, 8);
 +        memcpy(XBOX_HOST(at) + 8, &s_gpu.zpass_count, 4);
 +        memset(XBOX_HOST(at) + 12, 0, 4);
          break;
      }
      case NV097_SET_BLEND_COLOR:
-@@ -3052,6 +4098,18 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3052,6 +4107,18 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
  
          if (!s_gpu.prim)
              break;
@@ -6667,7 +6712,7 @@ index c65632c..c6b9cb6 100644
          for (i = 0; i < count && s_gpu.idx_count < NV_MAX_INDICES; i++)
              s_gpu.idx[s_gpu.idx_count++] = (uint16_t)(start + i);
          break;
-@@ -3065,6 +4123,17 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3065,6 +4132,17 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
          }
          break;
  
@@ -6685,7 +6730,7 @@ index c65632c..c6b9cb6 100644
      case NV097_SET_FLIP_READ:
          if (s_ftrace == 2)
              fprintf(stderr, "[FTRACE] P_READ %u%c", param, 10);
-@@ -3119,6 +4188,13 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3119,6 +4197,13 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
                                                 : s_gpu.color_offset;
              uint32_t pitch = s_gpu.drawn_offset ? s_gpu.drawn_pitch
                                                  : s_gpu.pitch;
@@ -6699,7 +6744,7 @@ index c65632c..c6b9cb6 100644
              if (done) {
                  xbox_FramebufferWindowSet(dma_resolve(done), pitch);
                  xbox_FramebufferWindowPresent(dma_resolve(done), pitch);
-@@ -3178,9 +4254,20 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3178,9 +4263,20 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
      /* Depth. */
      case 0x030C: s_gpu.depth_test = param; break; /* DEPTH_TEST_ENABLE */
      case 0x0354: s_gpu.depth_func = param; break; /* DEPTH_FUNC */
@@ -6720,7 +6765,7 @@ index c65632c..c6b9cb6 100644
  
      default:
          if (method >= 0x0260 && method < 0x0280) {         /* ALPHA_ICW(i) */
-@@ -3220,6 +4307,21 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
+@@ -3220,6 +4316,21 @@ void nv2a_pb_exec_method(uint32_t subch, uint32_t method, uint32_t param)
              nv2a_vsh_constant_component(58, (method - 0x0AF0) / 4, param);
              break;
          }
@@ -6742,7 +6787,7 @@ index c65632c..c6b9cb6 100644
          if (method >= 0x0B00 && method < 0x0B80) {    /* TRANSFORM_PROGRAM(i) */
              nv2a_vsh_program_word(param);
              break;
-@@ -3354,7 +4456,7 @@ static void peek_addresses(void)
+@@ -3354,7 +4465,7 @@ static void peek_addresses(void)
          float f;
          if (va < 0x1000u || va >= 0x04000000u)
              continue;
@@ -6751,7 +6796,7 @@ index c65632c..c6b9cb6 100644
          memcpy(&f, &v, 4);
          fprintf(stderr, "  [PEEK] 0x%08X = %08X  (%g)\n", va, v, f);
      }
-@@ -3392,7 +4494,7 @@ static void peek_chain(void)
+@@ -3392,7 +4503,7 @@ static void peek_chain(void)
                                  " pointer -- chain ends\n", step, cur);
                  return;
              }
@@ -6760,7 +6805,7 @@ index c65632c..c6b9cb6 100644
              fprintf(stderr, "  [CHAIN] step %d: deref +0x%X -> 0x%08X\n",
                      step, off, cur);
          }
-@@ -3400,12 +4502,13 @@ static void peek_chain(void)
+@@ -3400,12 +4511,13 @@ static void peek_chain(void)
      }
      if (cur >= 0x1000u && cur + 4 < 0x04000000u)
          fprintf(stderr, "  [CHAIN] final value at 0x%08X = 0x%08X\n",
@@ -6775,7 +6820,7 @@ index c65632c..c6b9cb6 100644
      peek_addresses();
      peek_chain();
      if (getenv("RECOMP_FIND_NAN")) {
-@@ -3534,10 +4637,157 @@ void nv2a_pb_exec_report(void)
+@@ -3534,10 +4646,157 @@ void nv2a_pb_exec_report(void)
               * is using. */
              union { uint32_t u; float f; } v;
              v.u = s_unhandled[i].last_param;
@@ -7716,7 +7761,7 @@ index 0b2d723..f612ac4 100644
      fflush(stderr);
  }
 diff --git i/src/kernel/xbox_memory_layout.c w/src/kernel/xbox_memory_layout.c
-index 72d5131..1af9bbd 100644
+index 72d5131..7fa9b06 100644
 --- i/src/kernel/xbox_memory_layout.c
 +++ w/src/kernel/xbox_memory_layout.c
 @@ -191,11 +191,11 @@ static const struct { uint32_t offset; uint32_t busy_mask; } NV2A_ACK[] = {
@@ -8637,7 +8682,7 @@ index 72d5131..1af9bbd 100644
      const uint32_t tib_size = 0x40;
      uint32_t tib, block, thread_data, total;
  
-@@ -3094,26 +3505,102 @@ static void contig_insert(int at, uint32_t addr, uint32_t size, int is_free)
+@@ -3094,26 +3505,112 @@ static void contig_insert(int at, uint32_t addr, uint32_t size, int is_free)
      g_contig_block_count++;
  }
  
@@ -8666,6 +8711,13 @@ index 72d5131..1af9bbd 100644
 +#define CONTIG_RES_LO (XBOX_CONTIG_BASE + (15u << 20))
 +#define CONTIG_RES_HI (XBOX_CONTIG_BASE + (16u << 20))
 +static uint32_t g_contig_res_next = CONTIG_RES_LO;
++/* Where the bump region starts (0x1000, or above the image with
++ * RECOMP_CONTIG_AVOID_IMAGE), and the pinned blocks MmAllocateContiguousMemoryEx
++ * placed at a demanded address. */
++static uint32_t g_contig_lo = XBOX_CONTIG_BASE + 0x1000u;
++#define CONTIG_MAX_PINNED 64
++static struct { uint32_t lo, hi; } g_contig_pinned[CONTIG_MAX_PINNED];
++static int g_contig_pinned_count;
 +
 +static int contig_avoid_image(void)
 +{
@@ -8726,8 +8778,11 @@ index 72d5131..1af9bbd 100644
 +     * the same switch for its page allocator; opt-in because it moves every
 +     * block, and game glue names some by address. */
 +    if (contig_avoid_image() && g_xbox_image_hi
-+            && g_contig_next < XBOX_CONTIG_BASE + ((g_xbox_image_hi + 4095u) & ~4095u))
++            && g_contig_next < XBOX_CONTIG_BASE + ((g_xbox_image_hi + 4095u) & ~4095u)) {
++        if (g_contig_next == g_contig_lo)       /* nothing handed out below yet */
++            g_contig_lo = XBOX_CONTIG_BASE + ((g_xbox_image_hi + 4095u) & ~4095u);
 +        g_contig_next = XBOX_CONTIG_BASE + ((g_xbox_image_hi + 4095u) & ~4095u);
++    }
 +
 +    if (reclaim) {
 +        /* A freed block first: carve the aligned piece, keep what is left
@@ -8747,12 +8802,12 @@ index 72d5131..1af9bbd 100644
                  continue;
              front = a - g_contig_blocks[i].addr;
              back = end - (a + size);
-@@ -3128,35 +3615,53 @@ uint32_t xbox_ContiguousAlloc(uint32_t size, uint32_t alignment)
+@@ -3128,35 +3625,106 @@ uint32_t xbox_ContiguousAlloc(uint32_t size, uint32_t alignment)
      }
  
      if (!result) {
 -        result = (g_contig_next + alignment - 1) & ~(alignment - 1);
-+        uint32_t from = g_contig_next, a;
++        uint32_t from = g_contig_next > lo ? g_contig_next : lo, a;
 +        if (from >= CONTIG_RES_LO && from < CONTIG_RES_HI && !limited)
 +            from = CONTIG_RES_HI;
 +        a = (from + alignment - 1) & ~(alignment - 1);
@@ -8818,25 +8873,63 @@ index 72d5131..1af9bbd 100644
 +    return xbox_ContiguousAllocRange(size, alignment, 0, 0xFFFFFFFFu);
 +}
 +
++/* A block MmAllocateContiguousMemoryEx placed at the exact physical address
++ * the title demanded (Halo's pools). Recorded so the window test below
++ * covers it, and so the bump region and the low reserve never hand the same
++ * pages out again. */
++void xbox_ContiguousClaimPinned(uint32_t phys, uint32_t size)
++{
++    uint32_t lo = XBOX_CONTIG_BASE + phys, hi = lo + ((size + 4095u) & ~4095u);
++    int reclaim = xbox_HeapReclaimEnabled();
++    if (reclaim)
++        AcquireSRWLockExclusive(&g_contig_lock);
++    if (g_contig_pinned_count < CONTIG_MAX_PINNED) {
++        g_contig_pinned[g_contig_pinned_count].lo = lo;
++        g_contig_pinned[g_contig_pinned_count].hi = hi;
++        g_contig_pinned_count++;
++    }
++    if (lo < CONTIG_RES_HI && hi > g_contig_res_next && hi > CONTIG_RES_LO)
++        g_contig_res_next = hi < CONTIG_RES_HI ? hi : CONTIG_RES_HI;
++    if (hi > g_contig_next && lo < XBOX_CONTIG_BASE + XBOX_CONTIG_SIZE) {
++        if (reclaim)
++            contig_free_gap(g_contig_next, lo > g_contig_next ? lo : g_contig_next);
++        g_contig_next = hi;
++    }
++    if (reclaim)
++        ReleaseSRWLockExclusive(&g_contig_lock);
++}
++
++/* Is physical address `phys` contiguous-window memory, i.e. inside something
++ * this arena handed out? The executor, the USB model and the APU resolve a
++ * physical address by this: window if so, else the image or plain RAM. A
++ * single high-water mark was wrong once the bump region started above the
++ * image and the low reserve could sit above the bump pointer: ranges never
++ * handed out counted as window. */
++int xbox_ContiguousOwns(uint32_t phys)
++{
++    uint32_t a = XBOX_CONTIG_BASE + phys;
++    int i;
++    if (phys >= XBOX_CONTIG_SIZE)
++        return 0;
++    /* Page 0 is never handed out but is window memory all the same: XPP
++     * carves its host controller structures from a private arena ending at
++     * 0x80001000 with no allocation call (see g_contig_next). */
++    if (phys < 0x1000u)
++        return 1;
++    if (a >= g_contig_lo && a < g_contig_next)
++        return 1;
++    if (a >= CONTIG_RES_LO && a < g_contig_res_next)
++        return 1;
++    for (i = 0; i < g_contig_pinned_count; i++)
++        if (a >= g_contig_pinned[i].lo && a < g_contig_pinned[i].hi)
++            return 1;
++    return 0;
++}
++
  /* Give a block back (RECOMP_HEAP_RECLAIM only). Returns 0 when the address is
   * not one this arena tracks, so the caller can try the general heap. */
  int xbox_ContiguousFree(uint32_t addr)
-@@ -3216,7 +3721,13 @@ uint32_t xbox_ContiguousBlockSize(uint32_t addr)
-  * a surface offset is physical, and only the window makes it addressable. */
- uint32_t xbox_ContiguousAllocatedBytes(void)
- {
--    return g_contig_next - XBOX_CONTIG_BASE;
-+    /* A reserve block can sit above the bump pointer early in boot; the
-+     * executor's "below the high-water mark is window memory" must hold
-+     * for it too. */
-+    uint32_t hw = g_contig_next;
-+    if (g_contig_res_next > CONTIG_RES_LO && g_contig_res_next > hw)
-+        hw = g_contig_res_next;
-+    return hw - XBOX_CONTIG_BASE;
- }
- 
- 
-@@ -3267,7 +3778,7 @@ static uint32_t heap_alloc_locked(uint32_t size, uint32_t alignment)
+@@ -3267,7 +3835,7 @@ static uint32_t heap_alloc_locked(uint32_t size, uint32_t alignment)
              }
              g_heap_blocks[i].free = 0;
              result = g_heap_blocks[i].addr;
@@ -8845,7 +8938,7 @@ index 72d5131..1af9bbd 100644
              return result;
          }
      }
-@@ -3313,7 +3824,7 @@ static uint32_t heap_alloc_locked(uint32_t size, uint32_t alignment)
+@@ -3313,7 +3881,7 @@ static uint32_t heap_alloc_locked(uint32_t size, uint32_t alignment)
      g_heap_next = result + size;
  
      /* Zero-fill the allocated block (Xbox memory is always zeroed) */
@@ -8855,19 +8948,22 @@ index 72d5131..1af9bbd 100644
      if (g_heap_block_count < XBOX_HEAP_MAX_BLOCKS) {
          g_heap_blocks[g_heap_block_count].addr = result;
 diff --git i/src/kernel/xbox_memory_layout.h w/src/kernel/xbox_memory_layout.h
-index 53f9d3d..4516a79 100644
+index 53f9d3d..427115f 100644
 --- i/src/kernel/xbox_memory_layout.h
 +++ w/src/kernel/xbox_memory_layout.h
-@@ -187,6 +187,8 @@ uint32_t xbox_GetDisplayFramebuffer(uint32_t *pitch);
+@@ -187,7 +187,11 @@ uint32_t xbox_GetDisplayFramebuffer(uint32_t *pitch);
  /* Allocate from the contiguous (physical-mirror) arena. Returns a guest VA
   * below 256 MB, or 0 when the arena is exhausted. */
  uint32_t xbox_ContiguousAlloc(uint32_t size, uint32_t alignment);
 +uint32_t xbox_ContiguousAllocRange(uint32_t size, uint32_t alignment,
 +                                   uint32_t lo_phys, uint32_t hi_phys);
  uint32_t xbox_ContiguousAllocatedBytes(void);
++int xbox_ContiguousOwns(uint32_t phys);
++void xbox_ContiguousClaimPinned(uint32_t phys, uint32_t size);
  
  int xbox_Nv2aMirrorFence(uint32_t device_ptr_va,
-@@ -211,6 +213,8 @@ void *xbox_GetMemoryBase(void);
+                          uint32_t put_off, uint32_t get_ptr_off);
+@@ -211,6 +215,8 @@ void *xbox_GetMemoryBase(void);
   * Returns 0 if memory is mapped at original Xbox addresses (ideal case).
   */
  ptrdiff_t xbox_GetMemoryOffset(void);
@@ -8876,7 +8972,7 @@ index 53f9d3d..4516a79 100644
  /* Bytes of guest address space mapped, for bounds-checking a guest pointer
   * that came out of guest memory rather than from this side. */
  size_t xbox_GetMappedSize(void);
-@@ -508,4 +512,7 @@ void  *xbox_thread_debug_handle(void); /* the game thread, or NULL under inline
+@@ -508,4 +514,7 @@ void  *xbox_thread_debug_handle(void); /* the game thread, or NULL under inline
  #define XBOX_THREAD_MODE_SPAWN  1
  void xbox_SetThreadMode(int mode);
  
@@ -9072,7 +9168,7 @@ index 22762ee..113f9e9 100644
  {
      PEXCEPTION_RECORD ExceptionRecord;
 diff --git i/src/usb/ohci.c w/src/usb/ohci.c
-index 641a94d..63bec1f 100644
+index 641a94d..9ebc420 100644
 --- i/src/usb/ohci.c
 +++ w/src/usb/ohci.c
 @@ -7,6 +7,7 @@
@@ -9095,6 +9191,15 @@ index 641a94d..63bec1f 100644
  
  /* Passes this thread will keep an interrupt back while the guest is at
   * DISPATCH_LEVEL or above. One pass is the OHCI_TICK_MS (4 ms) loop tick, so
+@@ -500,7 +504,7 @@ static uint32_t bus_resolve(uint32_t addr)
+ {
+     if (addr >= g_xbox_image_lo && addr < g_xbox_image_hi)
+         return addr;
+-    if (addr && addr < xbox_ContiguousAllocatedBytes())
++    if (addr && xbox_ContiguousOwns(addr))
+         return OHCI_CONTIG_BASE + addr;
+     return addr;
+ }
 @@ -510,20 +514,20 @@ static uint32_t rd32(uint32_t va)
      va = bus_resolve(va);
      if (!guest_ok(va, 4))
