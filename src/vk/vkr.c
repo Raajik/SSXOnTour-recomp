@@ -2588,7 +2588,8 @@ static void scene_pass(VkrContext *c)
         float t = c->sc_p[7] > c->sc_p[6] ? (c->cam.speed - c->sc_p[6]) / (c->sc_p[7] - c->sc_p[6]) : 0.0f;
         t = t < 0.0f ? 0.0f : t > 1.0f ? 1.0f : t;
         u[48] = c->cam.foe[0]; u[49] = c->cam.foe[1];
-        u[50] = c->cam.speed > 0.0f ? c->sc_p[5] * t * t * (3.0f - 2.0f * t) : 0.0f;
+        /* part of motion blur: Ink alone smeared riders the pass cannot tag (On Tour's) */
+        u[50] = c->cam.speed > 0.0f && c->sc_p[0] > 0.0f ? c->sc_p[5] * t * t * (3.0f - 2.0f * t) : 0.0f;
         u[51] = c->sc_p[8];
     }
     for (k = 0; k < 8; k++) {           /* the riders' own motion (tags 1..7) */
