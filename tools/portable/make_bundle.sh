@@ -97,8 +97,9 @@ Start it one of three ways:
 In Steam's gaming mode, add "Play SSX On Tour.sh" as a non-Steam game; Steam shows it
 fullscreen.
 
-Needs: a Vulkan GPU driver (any current Linux, SteamOS and Bazzite have one).
-Everything else is in this folder. Saves are in
+Needs: a Vulkan GPU driver and the usual desktop libraries (X11 or Wayland,
+ALSA or PulseAudio, libXtst); a desktop Linux has them. Everything else is in
+this folder. After moving the folder, run install-shortcuts.sh again. Saves are in
 ~/.local/share/xboxrecomp/UDATA/45410082/ (copy that too when you move the
 game to another machine). Logs: logs/ next to game/.
 

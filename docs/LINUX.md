@@ -4,14 +4,15 @@ One command does all of it, from your rip folder or disc image (it checks the
 dependencies and says what to install):
 
 ```bash
-scripts/linux-setup.sh ~/SSX3        # or: scripts/linux-setup.sh ssx3.iso
+scripts/linux-setup.sh ~/SSXOnTour    # or: scripts/linux-setup.sh ssxot.iso
 ```
 
-By hand:
+By hand (the README says what `game/` must hold):
 
 ```bash
-scripts/setup.sh && scripts/regen.sh      # as on Windows (XBE in disk/SSX3 or ../SSX3)
-ln -s disk/SSX3 game                      # exe opens game/default.xbe from the cwd
+scripts/setup.sh                          # the toolkit at the pinned version, with the patch
+mkdir -p game && cp ~/SSXOnTour/default.xbe game/ && ln -s ~/SSXOnTour/data game/data
+scripts/regen.sh                          # lifts game/default.xbe (~5 min)
 cmake -S . -B build-linux -G Ninja -DCMAKE_BUILD_TYPE=Release
 ninja -C build-linux && tools/play.sh       # keyboard = player 1, logs in play_std*.txt
 build-linux/launcher                      # or: the settings window, then Play
@@ -19,14 +20,14 @@ build-linux/launcher                      # or: the settings window, then Play
 
 `build-linux/launcher` (src/launcher/launcher_sdl.c, SDL2 + SDL2_ttf +
 fontconfig; skipped by CMake when those are missing) is the Windows launcher's
-counterpart. It has the same settings, the same `launcher.ini` next to it, and
-the same `RECOMP_*` hand-off. "Auto" resolution comes from the desktop the
-launcher is on, "Auto" aspect ratio follows the game window, and
-`RECOMP_USB_PADS` comes from the number of controllers. There are no Fullscreen, FPS counter or 5.1 rows, because the
-Linux game window and audio don't support them yet. The folder picker is zenity
+counterpart. It uses the same `launcher.ini` next to it and the same `RECOMP_*` hand-off, but shows only the
+settings this game honours (resolution, anti-aliasing, texture filtering, CRT, Ink & Color, intro movies, log
+detail, mods). "Auto" resolution comes from the desktop the launcher is on, and `RECOMP_USB_PADS` comes from the
+number of controllers. There are no Fullscreen, FPS counter or 5.1 rows, because the Linux game window and audio
+don't support them yet. The folder picker is zenity
 or kdialog, and you can also type the path. The game starts in the launcher's
-folder, or its parent when `hd-textures/` is there (`build-linux/` in this
-tree). Without a terminal, its output goes to `logs/` beside the game folder.
+folder, or its parent when `game/` is there (`build-linux/` in this tree, `bin/` in the
+one-folder build). Without a terminal, its output goes to `logs/` beside the game folder.
 
 Deps: `tools/linux/install_deps.sh` in the toolkit (SDL2, libepoxy, OpenSSL),
 plus the Vulkan headers and glslc for the renderer (Arch: `vulkan-headers`,
@@ -44,35 +45,31 @@ sudo dnf install gcc gcc-c++ cmake ninja-build git git-lfs python3 sdl2-compat-d
     vulkan-headers vulkan-loader-devel glslc
 ```
 
-The HD texture pack (`hd-textures/`) is stored with Git LFS. Without git-lfs a clone holds 131-byte pointer
-files there, and every HD texture fails with `not a DX10 DDS` in the log. After installing it, in the clone:
-`git lfs install --local --skip-repo && git lfs pull --include "hd-textures/**"` (`--skip-repo` leaves git hooks
-alone).
-
 Fedora's ffmpeg has no libx264, which `RECOMP_RECORD` uses.
 
 ## One folder for another Linux machine
 
-`tools/portable/` makes a folder that runs on any x86-64 Linux with glibc 2.31 or newer and a Vulkan 1.3 loader
-and driver (SteamOS, Bazzite, Ubuntu 22.04+, Fedora, Arch; not Debian 11, whose loader is 1.2), with nothing to
-install:
+`tools/portable/` makes a folder that needs glibc 2.29 or newer and a Vulkan 1.3 loader and driver, plus the
+machine's own X11/Wayland and ALSA/PulseAudio client libraries:
 
 ```bash
 tools/portable/prepare_spv.sh                  # shaders, from build-linux (needs glslc)
 tools/portable/build_portable.sh               # compile in Valve's Steam Runtime 3 "sniper" SDK (podman)
 podman run --rm -v "$PWD:$PWD:z" -w "$PWD" registry.gitlab.steamos.cloud/steamrt/sniper/sdk:latest \
-    sh tools/portable/collect_libs.sh build-portable /tmp/ssx3-out
-tools/portable/make_bundle.sh /tmp/ssx3-out ~/Games/SSX3
+    sh tools/portable/collect_libs.sh build-portable build-portable/out
+tools/portable/make_bundle.sh build-portable/out ~/Games/"SSX On Tour"
 ```
 
-The folder has `Play SSX 3.sh` (`launcher --play`: the saved settings, straight into the game, no window; add it
-to Steam as a non-Steam game), `SSX 3 Settings.sh` (the launcher), `install-shortcuts.sh` (app-menu entries),
-and `bin/ lib/ game/ hd-textures/ mods/`. `lib/` holds every library except glibc, the Vulkan loader and the
+The folder has `Play SSX On Tour.sh` (`launcher --play`: the saved settings, straight into the game, no window;
+add it to Steam as a non-Steam game), `SSX On Tour Settings.sh` (the launcher), `install-shortcuts.sh` (app-menu
+entries), and `bin/ lib/ game/ mods/`. `lib/` holds every library except glibc, the Vulkan loader and the
 display and sound stack. sdl2-compat loads SDL3 with dlopen, so `ldd` does not list it: `collect_libs.sh` adds
 SDL3 by name, with the libraries SDL3 links (libdecor among them). The folder holds your game files: keep it to yourself.
 
-Checked (2026-10-25): headless races in plain Ubuntu 24.04 (llvmpipe, Vulkan 1.4, loader 1.3.275) and 22.04
-(llvmpipe, Vulkan 1.3) containers, and on Fedora 44 with RADV. The game fetches `vkCmdPushDescriptorSet` from the
+Checked (2026-10-26, Observed): `Play SSX On Tour.sh` reaches "Please Press START" headless in plain Ubuntu
+24.04 (llvmpipe, Vulkan 1.4) and 22.04 (llvmpipe, Vulkan 1.3) containers with `libvulkan1 mesa-vulkan-drivers` and
+the X/Wayland/audio client libraries (`libxtst6` among them: the bundled SDL3 links libXtst), and on Fedora 44 with
+RADV. The SSX 3 build this came from was checked in races the same way. The game fetches `vkCmdPushDescriptorSet` from the
 device, because loaders before 1.4 do not export it (the game stopped at its first draw with `undefined symbol`),
 and uses `VK_KHR_push_descriptor` on a Vulkan 1.3 driver.
 
