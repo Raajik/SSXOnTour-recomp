@@ -3745,10 +3745,10 @@ index 1ad4fff..7ba275f 100644
  }
  
 diff --git i/src/kernel/kernel_path.c w/src/kernel/kernel_path.c
-index caf6390..36a6f66 100644
+index caf6390..91646cb 100644
 --- i/src/kernel/kernel_path.c
 +++ w/src/kernel/kernel_path.c
-@@ -16,6 +16,40 @@
+@@ -16,6 +16,43 @@
  #include <stdio.h>
  #include <string.h>
  #include <ctype.h>
@@ -3783,13 +3783,16 @@ index caf6390..36a6f66 100644
 +            break;
 +        }
 +    }
-+    xbox_log(XBOX_LOG_INFO, XBOX_LOG_PATH, "asset mod %s replaces %s", xbox_mods_name(mod - 1), rel);
++    if (mod > xbox_mods_count())                /* RECOMP_EMPTY_FILES, not a mod */
++        xbox_log(XBOX_LOG_INFO, XBOX_LOG_PATH, "RECOMP_EMPTY_FILES: %s reads as empty", rel);
++    else
++        xbox_log(XBOX_LOG_INFO, XBOX_LOG_PATH, "asset mod %s replaces %s", xbox_mods_name(mod - 1), rel);
 +}
 +#include <stdlib.h>
  
  /* A project may set this to watch every guest path the kernel translates (for
   * example to print who opened a file). NULL by default. */
-@@ -40,13 +74,26 @@ static int match_prefix(const char* path, const char* prefix)
+@@ -40,13 +77,26 @@ static int match_prefix(const char* path, const char* prefix)
  /* A device-path translation rule, shared by both backends. */
  typedef struct {
      const char* prefix;     /* Xbox path prefix (backslash form)         */
@@ -3817,7 +3820,7 @@ index caf6390..36a6f66 100644
      { "\\Device\\Harddisk0\\Partition1\\",    0, NULL,         NULL          },
      /* The rest of the disk. Partition 0 is the whole raw device, 2 holds
       * system data, and 3-5 are the per-title caches behind X:, Y: and Z:.
-@@ -85,6 +132,25 @@ static const path_rule s_rules[] = {
+@@ -85,6 +135,25 @@ static const path_rule s_rules[] = {
  };
  #define PATH_RULE_COUNT ((int)(sizeof(s_rules) / sizeof(s_rules[0])))
  
@@ -3843,7 +3846,7 @@ index caf6390..36a6f66 100644
  /*
   * Rewrite a path through a drive letter the title mapped for itself.
   *
-@@ -156,6 +222,7 @@ static int resolve_symlink(const char* xbox_path, char* out, size_t out_size)
+@@ -156,6 +225,7 @@ static int resolve_symlink(const char* xbox_path, char* out, size_t out_size)
      return 0;
  }
  
@@ -3851,7 +3854,7 @@ index caf6390..36a6f66 100644
  /* ======================================================================== */
  /* Shared by both backends, for the same reason as xbox_LastFileError: the
   * bridge calls it unconditionally, and a _WIN32-only definition breaks every
-@@ -176,6 +243,7 @@ const wchar_t *xbox_LastHostPath(void)
+@@ -176,6 +246,7 @@ const wchar_t *xbox_LastHostPath(void)
  
  static WCHAR s_game_dir[MAX_PATH];
  static WCHAR s_save_dir[MAX_PATH];
@@ -3859,7 +3862,7 @@ index caf6390..36a6f66 100644
  static BOOL  s_initialized = FALSE;
  
  /*
-@@ -274,6 +342,8 @@ void xbox_path_init(const char* game_dir, const char* save_dir)
+@@ -274,6 +345,8 @@ void xbox_path_init(const char* game_dir, const char* save_dir)
  {
      WCHAR save_base[MAX_PATH];
  
@@ -3868,7 +3871,7 @@ index caf6390..36a6f66 100644
      /* The fallbacks used to name Burnout 3 specifically, so any other title
       * that passed NULL silently pointed its game dir and its saves at another
       * game's folders. Generic now -- a caller that wants a title-specific
-@@ -374,8 +444,54 @@ void xbox_path_init(const char* game_dir, const char* save_dir)
+@@ -374,8 +447,54 @@ void xbox_path_init(const char* game_dir, const char* save_dir)
          }
      }
  
@@ -3924,7 +3927,7 @@ index caf6390..36a6f66 100644
  }
  
  /* The host path the last translation produced.
-@@ -394,6 +510,16 @@ static void xbox_remember_host_path(const wchar_t *p)
+@@ -394,6 +513,16 @@ static void xbox_remember_host_path(const wchar_t *p)
  
  
  
@@ -3941,7 +3944,7 @@ index caf6390..36a6f66 100644
  BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, DWORD buf_size)
  {
      const char*  remainder = NULL;
-@@ -420,10 +546,13 @@ BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, D
+@@ -420,10 +549,13 @@ BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, D
      }
  
      for (int i = 0; i < PATH_RULE_COUNT; i++) {
@@ -3957,7 +3960,7 @@ index caf6390..36a6f66 100644
              sub_dir   = s_rules[i].sub_win;
              goto translate;
          }
-@@ -446,6 +575,22 @@ translate:
+@@ -446,6 +578,22 @@ translate:
              if (*p == L'/') *p = L'\\';
          }
  
@@ -3980,7 +3983,7 @@ index caf6390..36a6f66 100644
          if (sub_dir) {
              WCHAR sub_wide[MAX_PATH];
              MultiByteToWideChar(CP_ACP, 0, sub_dir, -1, sub_wide, MAX_PATH);
-@@ -453,7 +598,7 @@ translate:
+@@ -453,7 +601,7 @@ translate:
  
              WCHAR dir_path[MAX_PATH];
              swprintf_s(dir_path, MAX_PATH, L"%s%s", base_dir, sub_wide);
@@ -3989,7 +3992,7 @@ index caf6390..36a6f66 100644
              CreateDirectoryW(dir_path, NULL);
          } else {
              swprintf_s(host_path_buf, buf_size, L"%s\\%s", base_dir, remainder_wide);
-@@ -485,9 +630,14 @@ translate:
+@@ -485,9 +633,14 @@ translate:
  #include <sys/stat.h>
  #include <sys/types.h>
  #include <errno.h>
@@ -4004,7 +4007,7 @@ index caf6390..36a6f66 100644
  static BOOL s_initialized = FALSE;
  
  /* Strip a single trailing '/' (but never the root '/'). */
-@@ -519,8 +669,11 @@ static void mkdir_p(const char* path)
+@@ -519,8 +672,11 @@ static void mkdir_p(const char* path)
          xbox_log(XBOX_LOG_WARN, XBOX_LOG_PATH, "mkdir %s: %s", tmp, strerror(errno));
  }
  
@@ -4016,7 +4019,7 @@ index caf6390..36a6f66 100644
      if (game_dir) {
          snprintf(s_game_dir, sizeof(s_game_dir), "%s", game_dir);
      } else {
-@@ -548,9 +701,212 @@ void xbox_path_init(const char* game_dir, const char* save_dir)
+@@ -548,9 +704,212 @@ void xbox_path_init(const char* game_dir, const char* save_dir)
      strip_trailing_slash(s_game_dir);
      strip_trailing_slash(s_save_dir);
  
@@ -4231,7 +4234,7 @@ index caf6390..36a6f66 100644
  }
  
  BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, DWORD buf_size)
-@@ -566,6 +922,9 @@ BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, D
+@@ -566,6 +925,9 @@ BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, D
      if (!s_initialized)
          xbox_path_init(NULL, NULL);
  
@@ -4241,7 +4244,7 @@ index caf6390..36a6f66 100644
      {
          char linked[512];
          if (resolve_symlink(xbox_path, linked, sizeof(linked)))
-@@ -573,10 +932,13 @@ BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, D
+@@ -573,10 +935,13 @@ BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, D
      }
  
      for (int i = 0; i < PATH_RULE_COUNT; i++) {
@@ -4257,7 +4260,7 @@ index caf6390..36a6f66 100644
              sub_dir   = s_rules[i].sub_posix;
              goto translate;
          }
-@@ -616,6 +978,17 @@ translate:
+@@ -616,6 +981,17 @@ translate:
                  host_path_buf[--n] = '\0';
          }
  
@@ -10050,14 +10053,16 @@ index 0000000..45b6a74
 +#endif
 diff --git 1/src/kernel/kernel_mods.c 2/src/kernel/kernel_mods.c
 new file mode 100644
-index 0000000..d44212d
+index 0000000..3d8849d
 --- /dev/null
 +++ 2/src/kernel/kernel_mods.c
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,128 @@
 +/* Asset mods: whole-file overrides of the game folder (kernel_mods.h). */
 +#include "kernel_mods.h"
 +
++#include <ctype.h>
 +#include <stdio.h>
++#include <stdlib.h>
 +#include <string.h>
 +
 +static char s_dir[512];
@@ -10112,13 +10117,66 @@ index 0000000..d44212d
 +    return i >= 0 && i < s_count ? s_names[i] : NULL;
 +}
 +
++/* '*' and '?' glob, letter case ignored, '*' crossing '/' as well. */
++static int glob_match(const char *pat, const char *s)
++{
++    for (; *pat; pat++, s++) {
++        if (*pat == '*') {
++            while (pat[1] == '*')
++                pat++;
++            if (!pat[1])
++                return 1;
++            for (; *s; s++)
++                if (glob_match(pat + 1, s))
++                    return 1;
++            return 0;
++        }
++        if (!*s || (*pat != '?' && tolower((unsigned char)*pat) != tolower((unsigned char)*s)))
++            return 0;
++    }
++    return !*s;
++}
++
++/* RECOMP_EMPTY_FILES=<glob>[;<glob>...]: game files that match read as
++ * empty, as if a mod replaced them with a 0-byte file. A title whose
++ * intro movies stall here (SSX On Tour: the movie's audio stream never
++ * plays, and the video waits for it) skips them this way. */
++static int empty_match(const char *rel)
++{
++    const char *e = getenv("RECOMP_EMPTY_FILES");
++    char pat[256];
++    while (e && *e) {
++        size_t n = strcspn(e, ";");
++        if (n && n < sizeof pat) {
++            memcpy(pat, e, n);
++            pat[n] = 0;
++            if (glob_match(pat, rel))
++                return 1;
++        }
++        e += n;
++        if (*e)
++            e++;
++    }
++    return 0;
++}
++
 +int xbox_mods_lookup(const char *rel, char *out, size_t out_size, int (*exists)(char *path))
 +{
 +    int i;
-+    if (!s_count || !rel || !*rel || strstr(rel, ".."))
++    if (!rel || !*rel || strstr(rel, ".."))
 +        return 0;
 +    while (*rel == '/')
 +        rel++;
++    if (empty_match(rel)) {
++#ifdef _WIN32
++        snprintf(out, out_size, "NUL");
++#else
++        snprintf(out, out_size, "/dev/null");
++#endif
++        return s_count + 1;
++    }
++    if (!s_count)
++        return 0;
 +    for (i = s_count - 1; i >= 0; i--) {
 +        if ((size_t)snprintf(out, out_size, "%s/%s/%s", s_dir, s_names[i], rel) >= out_size)
 +            continue;
@@ -12715,10 +12773,10 @@ index 0000000..7262e70
 +add_test(NAME kernel_mods_test COMMAND kernel_mods_test)
 diff --git 1/tests/kernel_mods/test_main.c 2/tests/kernel_mods/test_main.c
 new file mode 100644
-index 0000000..7d95d82
+index 0000000..ca11651
 --- /dev/null
 +++ 2/tests/kernel_mods/test_main.c
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,118 @@
 +/* kernel_mods: load order, name checks and lookup order. */
 +#include "kernel_mods.h"
 +
@@ -12800,6 +12858,31 @@ index 0000000..7d95d82
 +    CHECK(xbox_mods_lookup("data/none.big", out, sizeof out, file_exists) == 0);
 +    CHECK(xbox_mods_lookup("data/../load-order.txt", out, sizeof out, file_exists) == 0);
 +    CHECK(xbox_mods_lookup("data/UPPER.BIG", out, sizeof out, lower_then_exists) == 2);
++
++    /* RECOMP_EMPTY_FILES: a match reads as the empty device, ahead of any
++     * mod, and works with no mods enabled. */
++    {
++#ifdef _WIN32
++        const char *empty = "NUL";
++        _putenv("RECOMP_EMPTY_FILES=data/movies/*.vp6;data/ONLY_A.big");
++#else
++        const char *empty = "/dev/null";
++        setenv("RECOMP_EMPTY_FILES", "data/movies/*.vp6;data/ONLY_A.big", 1);
++#endif
++        CHECK(xbox_mods_lookup("data/movies/bigEnna.vp6", out, sizeof out, file_exists) == 3);
++        CHECK(strcmp(out, empty) == 0);
++        CHECK(xbox_mods_lookup("data/only_a.big", out, sizeof out, file_exists) == 3);   /* case ignored */
++        CHECK(xbox_mods_lookup("data/movies/bigEnna.vp6x", out, sizeof out, file_exists) == 0);
++        CHECK(xbox_mods_lookup("data/both.big", out, sizeof out, file_exists) == 2);    /* others unchanged */
++        CHECK(xbox_mods_init(NULL) == 0);
++        CHECK(xbox_mods_lookup("data/movies/intro.vp6", out, sizeof out, file_exists) == 1);
++        CHECK(xbox_mods_lookup("data/both.big", out, sizeof out, file_exists) == 0);
++#ifdef _WIN32
++        _putenv("RECOMP_EMPTY_FILES=");
++#else
++        unsetenv("RECOMP_EMPTY_FILES");
++#endif
++    }
 +
 +    CHECK(xbox_mods_init(NULL) == 0);
 +    CHECK(xbox_mods_lookup("data/both.big", out, sizeof out, file_exists) == 0);

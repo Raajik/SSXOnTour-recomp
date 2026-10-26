@@ -954,6 +954,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
      *     OHCI HCCA landed at physical 0x00202000, inside .text, and the USB
      *     model read code as its interrupt table: the pad never enumerated. */
     if (!getenv("RECOMP_CONTIG_AVOID_IMAGE")) _putenv_s("RECOMP_CONTIG_AVOID_IMAGE", "1");
+    /*   RECOMP_EMPTY_FILES: the movies read as empty files, so the game skips
+     *     them. A movie's audio stream never plays here, and its video waits
+     *     for that clock: the EA SPORTS BIG intro stopped boot on its first
+     *     frame. RECOMP_EMPTY_FILES= (empty) plays them. */
+    if (!getenv("RECOMP_EMPTY_FILES"))   _putenv_s("RECOMP_EMPTY_FILES", "data/movies/*.vp6");
     /*   RECOMP_NV2A_ACK_THREAD: the GPU executor runs asynchronously, as the
      *   NV2A does, instead of the title waiting for every batch to be drawn
      *   -- ~2x the frame rate in a race (9-12 vs 4-7 FPS). =0 for the old
