@@ -238,6 +238,9 @@ else()
     enable_testing()
     add_executable(mods_list_test tests/mods_list_test.c src/launcher/mods_list.c)
     add_test(NAME mods_list_test COMMAND mods_list_test)
+    # The texture dump skips surfaces redrawn every frame (tests/hdtex_dump_test.c).
+    add_executable(hdtex_dump_test tests/hdtex_dump_test.c src/vk/vkr_hdtex.c)
+    add_test(NAME hdtex_dump_test COMMAND hdtex_dump_test)
 endif()
 
 # ── Game-specific additions ─────────────────────────────────────
