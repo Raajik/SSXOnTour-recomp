@@ -275,7 +275,7 @@ static int check_game(const char *dir, char *msg, size_t n)
                  *name ? name : "another game", id);
         return 0;
     }
-    if ((entry ^ XBE_ENTRY_KEY_RETAIL) != VA(0x00181AD2) && (entry ^ XBE_ENTRY_KEY_DEBUG) != VA(0x00181AD2)) {
+    if ((entry ^ XBE_ENTRY_KEY_RETAIL) != VA(0x001A2C40) && (entry ^ XBE_ENTRY_KEY_DEBUG) != VA(0x001A2C40)) {
         snprintf(msg, n, "This is another build of SSX 3 than this program was made for (" SSX3_BUILD_NAME
                  "). Build it from source for your copy: docs/PORTS.md.");
         return 0;

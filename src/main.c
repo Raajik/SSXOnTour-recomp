@@ -1,5 +1,5 @@
 /**
- * SSX 3 - Recompiled Game Entry Point
+ * SSX On Tour - Recompiled Game Entry Point
  *
  * This is the Windows executable that hosts the recompiled game code.
  * It performs the following initialization sequence:
@@ -21,13 +21,12 @@
  *   - Customize the VEH handler for game-specific crash diagnosis
  *
  * XBE Details (fill in from xbe_parser output):
- *   Title:       SSX 3
- *   Title ID:    0x4541003C (PAL, XDK 5558, built 2003-09-19)
+ *   Title:       SSX On Tour
+ *   Title ID:    0x45410082 (NTSC-U, XDK 5849, built 2005-09-02)
  *   Base addr:   0x00010000
- *   Entry point: 0x00181AD2
- *   Code size:   ~2150 KB (.text 0x2196DC)
- *   Sections:    12 (.text D3D D3DX XGRPH DSOUND XPP .rdata .data DOLBY $$XTIMAGE ABRTFONT .XTLID)
- *   Kernel imports: 159
+ *   Entry point: 0x001A2C40
+ *   Code size:   ~2690 KB (.text 0x2A0310)
+ *   Sections:    11 (.text D3D D3DX XGRPH DSOUND XPP .rdata .data DOLBY $$XTIMAGE .XTLID)
  */
 
 #ifndef _WIN32
@@ -139,7 +138,7 @@ extern ptrdiff_t g_xbox_mem_offset;
  * TODO: Set these from your xbe_parser output.
  * Run: py -3 -m tools.xbe_parser game/default.xbe
  */
-#define YOUR_GAME_ENTRY_POINT   VA(0x00181AD2)  /* XBE entry point VA */
+#define YOUR_GAME_ENTRY_POINT   VA(0x001A2C40)  /* XBE entry point VA */
 #define YOUR_GAME_XBE_PATH      "game/default.xbe"
 #define YOUR_GAME_DIR            "game"
 
@@ -815,8 +814,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     setvbuf(stdout, NULL, _IONBF, 0);
     setvbuf(stderr, NULL, _IONBF, 0);
 
-    /* Runtime options SSX 3 needs; set before anything reads them, and only
-     * when not already set, so a run can still override them.
+    /* Runtime options SSX 3 needed, kept for SSX On Tour (same engine family
+     * and toolkit; the guest addresses in these notes are SSX 3's). Set
+     * before anything reads them, and only when not already set, so a run
+     * can still override them.
      *   RECOMP_TITLE_KEVENTS: XAPI's timer thread (guest 0x0021C1B5) and D3D
      *     build KEVENTs by hand; without host events behind them every wait
      *     fails at once and the timer thread spins.
@@ -946,23 +947,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
      *   -- ~2x the frame rate in a race (9-12 vs 4-7 FPS). =0 for the old
      *   lock-step mode. */
     if (!getenv("RECOMP_NV2A_ACK_THREAD")) _putenv_s("RECOMP_NV2A_ACK_THREAD", "1");
-    /* Skip the intro movies (EA logo, THX, intro): the intro state plays the
-     * movies whose bits are set in the mask at 0x003083B8 (bit 0 EA, 1 THX,
-     * 2 intro; starts at 7) -- held at 0, none plays, and boot reaches the
-     * title in seconds instead of ~35 s (found by Corne Dorrestijn,
-     * scripts/race_loop.sh). RECOMP_SKIP_INTRO=0 plays them. Added to any
-     * RECOMP_POKE a run already sets. */
-    {
-        const char *skip = getenv("RECOMP_SKIP_INTRO");
-        if (!(skip && skip[0] == '0')) {
-            const char *poke = getenv("RECOMP_POKE");
-            char buf[256];
-            snprintf(buf, sizeof buf, "%s%s0x%X:0", poke && *poke ? poke : "",
-                     poke && *poke ? "," : "", VA(0x003083B8));
-            _putenv_s("RECOMP_POKE", buf);
-        }
-    }
-
 #if defined(__linux__) && defined(__aarch64__)
     /* The guest is x86: its lock-free code, and the pushbuffer / PUT hand-off
      * to the GPU threads, assume total store order. Apple cores (Asahi) can
@@ -980,7 +964,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     }
 #endif
 
-    printf("=== SSX 3 - Static Recompilation ===\n");
+    printf("=== SSX On Tour - Static Recompilation ===\n");
     printf("Loading XBE...\n");
 
     /* Install VEH handler (first handler in chain) */
@@ -1007,12 +991,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         char tried[2200], msg[2600];
         if (!find_game_dir(tried, sizeof tried)) {
             snprintf(msg, sizeof msg,
-                     "SSX 3's default.xbe was not found. Looked in:\n%s\n"
+                     "SSX On Tour's default.xbe was not found. Looked in:\n%s\n"
                      "Put your own rip of the disc (default.xbe and the data folder) in a\n"
                      "folder named 'game' next to the program (or its parent folder),\n"
                      "or set RECOMP_GAME_DIR to the folder that holds default.xbe.", tried);
             fprintf(stderr, "%s\n", msg);
-            MessageBoxA(NULL, msg, "SSX 3", MB_ICONERROR);
+            MessageBoxA(NULL, msg, "SSX On Tour", MB_ICONERROR);
             return 1;
         }
 #ifdef _WIN32
@@ -1061,25 +1045,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 
     }
     if (!load_xbe(s_game_xbe, &xbe_data, &xbe_size)) {
-        MessageBoxA(NULL, "default.xbe could not be read.", "SSX 3", MB_ICONERROR);
+        MessageBoxA(NULL, "default.xbe could not be read.", "SSX On Tour", MB_ICONERROR);
         return 1;
     }
     printf("XBE loaded: %zu bytes\n", xbe_size);
     journal_session_header(xbe_data, xbe_size, s_game_dir);
 
-    /* This program was lifted from one disc (tools/xbe_port/port.py). Another
-     * build of SSX 3 has the same title id but runs at other addresses: refuse
-     * it instead of starting mid-function. The header's entry point is XORed
+    /* This program was lifted from one disc. Another build of SSX On Tour
+     * may have the same title id but run at other addresses: refuse it
+     * instead of starting mid-function. The header's entry point is XORed
      * with the retail or the debug key. */
     {
         uint32_t ent = 0;
         if (xbe_size >= 0x12C)
             memcpy(&ent, (const uint8_t *)xbe_data + 0x128, 4);
         if ((ent ^ 0xA8FC57ABu) != YOUR_GAME_ENTRY_POINT && (ent ^ 0x94859D4Bu) != YOUR_GAME_ENTRY_POINT) {
-            log_msg(LOG_CRITICAL, "SYSTEM", "default.xbe is another build of SSX 3 than this program (%s): "
-                    "run scripts/regen for it (docs/PORTS.md)", SSX3_BUILD_NAME);
-            MessageBoxA(NULL, "This default.xbe is another build of SSX 3 than this program was made for ("
-                        SSX3_BUILD_NAME ").\nRun scripts/regen for it (docs/PORTS.md).",
+            log_msg(LOG_CRITICAL, "SYSTEM", "default.xbe is another build of SSX On Tour than this program (%s)",
+                    SSX3_BUILD_NAME);
+            MessageBoxA(NULL, "This default.xbe is another build of SSX On Tour than this program was made for ("
+                        SSX3_BUILD_NAME ").",
                         "Recomp", MB_ICONERROR);
             free(xbe_data);
             return 1;
@@ -1173,12 +1157,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     /* Step 6: Initialize stack */
     g_esp = XBOX_STACK_TOP;
 
-    /* D3D's block-until-GPU-time loop (guest 0x00234D10, in sub_00234BE0)
-     * spins until the GPU's completed sequence, *[device+0x30], catches up
-     * with the submitted one at device+0x2C. The device pointer lives at
-     * 0x0024B0D8. Nothing executes the pushbuffer on the GPU here, so all
-     * submitted work is complete; mirror that so the wait terminates. */
-    xbox_Nv2aMirrorFence(VA(0x0024B0D8), 0x2C, 0x30);
+    /* D3D's block-until-GPU-time loop spins until the GPU's completed
+     * sequence, *[device+0x30], catches up with the submitted one at
+     * device+0x2C. Nothing executes the pushbuffer on the GPU here, so all
+     * submitted work is complete; mirror that so the wait terminates. The
+     * device pointer lives at 0x002D1DE8: the D3D section's most-read
+     * global, 193 reads, as SSX 3's (XDK 5558) device pointer is. */
+    xbox_Nv2aMirrorFence(VA(0x002D1DE8), 0x2C, 0x30);
 
 #ifdef SSX3_VULKAN
     {
@@ -1247,16 +1232,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         ssx3_ThreadDumpStart();
         ssx3_PeekEveryStart();      /* RECOMP_PEEK_EVERY_MS */
         {
-            extern void ssx3_GameStateStart(void);
-            ssx3_GameStateStart();  /* [STATE] lines + game_state.txt */
-        }
-        {
             extern void ssx3_MarkStart(void);
             ssx3_MarkStart();       /* F12 / both sticks: a player mark in the log */
-        }
-        {
-            extern void ssx3_AutonavStart(void);
-            ssx3_AutonavStart();    /* RECOMP_AUTONAV=race,...: menus -> race */
         }
     }
 

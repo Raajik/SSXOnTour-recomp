@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 # ============================================================================
-# SSX 3 - Static Recompilation
+# SSX On Tour - Static Recompilation
 #
 # Copy this template to your game project root and customize:
 #   1. Change the project name below
@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.20)
 #   4. Add any game-specific compile definitions or link libraries
 # ============================================================================
 
-project(ssx3_recomp C)
+project(ssxot_recomp C)
 
 # Static C runtime: the release runs without the Visual C++ Redistributable
 # (a missing VCRUNTIME140.dll would stop launcher.exe before it opens).
@@ -41,7 +41,7 @@ endif()
 #   find_package(xboxrecomp REQUIRED)
 #
 # Adjust this path to point to your xboxrecomp clone:
-set(XBOXRECOMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../xboxrecomp" CACHE PATH
+set(XBOXRECOMP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../xboxrecomp-ssxot" CACHE PATH
     "Path to the xboxrecomp toolkit root directory")
 
 # Add xboxrecomp as a subdirectory -- this builds all 6 runtime libraries
@@ -67,11 +67,9 @@ set(GAME_SOURCES
     src/mark.c
     src/perf.c
     src/recomp_manual.c
-    src/ssx3_overrides.c
+    src/ssxot_overrides.c
+    src/game_hooks.c
     src/thread_dump.c
-    src/game_state.c
-    src/camera_mode.c
-    src/autonav.c
     src/mmio_posix.c
     src/web_platform.c
     # Add game-specific sources here, e.g.:
@@ -91,20 +89,14 @@ else()
     add_executable(${PROJECT_NAME} ${GAME_SOURCES} ${RECOMP_GEN_SOURCES})
 endif()
 
-# The hand-written code uses PAL addresses. regen writes port_map.h, which maps
-# them to the build the XBE is (identity for PAL; tools/xbe_port/port.py). Only
-# the hand-written sources get it: the generated code already has the build's names.
-# The launchers use it to check that a game folder is the build they were made for.
-set(PORT_MAP_H ${CMAKE_CURRENT_SOURCE_DIR}/src/recomp/gen/port_map.h)
-set(PORT_MAP_SOURCES ${GAME_SOURCES} src/launcher/launcher.c src/launcher/launcher_sdl.c)
-if(NOT EXISTS ${PORT_MAP_H})
-    message(FATAL_ERROR "src/recomp/gen/port_map.h is missing. Run scripts/regen.sh or regen.ps1 "
-                        "(\"lift\" is enough after pulling the change that added it).")
-endif()
+# The hand-written code writes addresses as VA(0x...) and names the build
+# (src/build_id.h). Only the hand-written sources get it.
+set(BUILD_ID_H ${CMAKE_CURRENT_SOURCE_DIR}/src/build_id.h)
+set(BUILD_ID_SOURCES ${GAME_SOURCES} src/launcher/launcher.c src/launcher/launcher_sdl.c)
 if(MSVC)
-    set_source_files_properties(${PORT_MAP_SOURCES} PROPERTIES COMPILE_OPTIONS "/FI${PORT_MAP_H}")
+    set_source_files_properties(${BUILD_ID_SOURCES} PROPERTIES COMPILE_OPTIONS "/FI${BUILD_ID_H}")
 else()
-    set_source_files_properties(${PORT_MAP_SOURCES} PROPERTIES COMPILE_OPTIONS "-include;${PORT_MAP_H}")
+    set_source_files_properties(${BUILD_ID_SOURCES} PROPERTIES COMPILE_OPTIONS "-include;${BUILD_ID_H}")
 endif()
 
 # The build's version for the session log (src/journal.c)
