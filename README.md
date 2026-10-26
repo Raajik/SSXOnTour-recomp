@@ -38,6 +38,11 @@ Saves go to `~/.local/share/xboxrecomp/UDATA/45410082/`. Controls: any SDL game 
 (Enter = Start, Z/X/A/S = A/B/X/Y, arrows = d-pad; the full map is at the top of `tools/play.sh`). The intro
 movies are skipped; `RECOMP_SKIP_INTRO=0 tools/play.sh` plays them.
 
+To play on another machine, `tools/portable/` makes one folder with the game, its libraries and start scripts (it
+needs glibc 2.29 or newer; tested on Fedora 44 and in Ubuntu 22.04 and 24.04 containers): `prepare_spv.sh`, `build_portable.sh` (Valve's Steam Runtime "sniper" SDK in
+podman), `collect_libs.sh` inside the same image, then `make_bundle.sh build-portable/out "<folder>"`. The folder
+holds your game files: keep it to yourself. It needs a Vulkan driver and the usual desktop libraries.
+
 ## How it was done
 
 [docs/BRINGUP.md](docs/BRINGUP.md) lists every problem found on the way (memory layout, GPU, timers, USB, audio),
