@@ -8,7 +8,7 @@
  * RECOMP_TEX_DUMP=<dir>: every texture decoded for the first time is
  * written to <dir>/<key>_<w>x<h>_f<format>.tga (once per key) -- the set
  * tools/hdtex_match.py matches replacement images against. A surface the
- * game redraws every frame (the rider's shadow) is written for its first
+ * game redraws every frame (the rider's shadow) is written for its first 8
  * frames only, not per frame.
  *
  * RECOMP_HDTEX=<dir> (default "hd-textures": Bl4ckH4nd's SSX 3 PS2 pack,
@@ -265,23 +265,43 @@ static int dumped_add(uint64_t key)      /* 1 if new */
     return 1;
 }
 
-/* 1 if the texture at addr is a surface redrawn every frame: its third change
- * of pixels, each less than a second after the last. Two textures sharing pixels
- * with two palettes alternate keys and are both still written (1024 slots by
- * address; a clash forgets). */
-static int redrawn(uint32_t addr, uint64_t key, double t_ms)
+static int dumped_has(uint64_t key)
 {
-    static struct { uint32_t addr; uint64_t key; double t; int n; } seen[1024];
-    size_t i = (addr >> 7) & 1023;
-    if (seen[i].addr != addr) {
-        seen[i].addr = addr; seen[i].key = key; seen[i].t = t_ms; seen[i].n = 0;
+    size_t i;
+    if (!s_dumped_cap)
+        return 0;
+    for (i = (size_t)(key * 0x9E3779B97F4A7C15ull >> 20) & (s_dumped_cap - 1); s_dumped[i];
+         i = (i + 1) & (s_dumped_cap - 1))
+        if (s_dumped[i] == key)
+            return 1;
+    return 0;
+}
+
+/* 1 if addr is a surface redrawn every frame: its 9th new set of pixels, each
+ * less than a second after the last. Up to 8 palettes of one texture are all
+ * kept (one seen before does not count). A texture first drawn at such an
+ * address within that second is missed. */
+#define SEEN_SLOTS 4096
+static int redrawn(uint32_t addr, double t_ms)
+{
+    static struct { uint32_t addr; int used, n; double t; } seen[SEEN_SLOTS];
+    size_t h = (size_t)((addr * 0x9E3779B1u) >> 20), i = h, old = h, k;
+    for (k = 0; k < 8; k++) {              /* probe; all 8 taken: reuse the oldest */
+        i = (h + k) & (SEEN_SLOTS - 1);
+        if (!seen[i].used || seen[i].addr == addr)
+            break;
+        if (seen[i].t < seen[old].t)
+            old = i;
+    }
+    if (k == 8)
+        i = old;
+    if (!seen[i].used || seen[i].addr != addr) {
+        seen[i].used = 1; seen[i].addr = addr; seen[i].n = 1; seen[i].t = t_ms;
         return 0;
     }
-    if (seen[i].key != key) {
-        seen[i].n = t_ms - seen[i].t < 1000.0 ? seen[i].n + 1 : 1;
-        seen[i].key = key; seen[i].t = t_ms;
-    }
-    return seen[i].n >= 3;
+    seen[i].n = t_ms - seen[i].t < 1000.0 ? seen[i].n + 1 : 1;
+    seen[i].t = t_ms;
+    return seen[i].n > 8;
 }
 
 void hdtex_dump(uint64_t key, uint32_t addr, double t_ms,
@@ -292,7 +312,7 @@ void hdtex_dump(uint64_t key, uint32_t addr, double t_ms,
     FILE *f;
     uint32_t y;
     init();
-    if (!s_dump_dir[0] || redrawn(addr, key, t_ms) || !dumped_add(key))
+    if (!s_dump_dir[0] || dumped_has(key) || redrawn(addr, t_ms) || !dumped_add(key))
         return;
     snprintf(path, sizeof path, "%s/%016llx_%ux%u_f%02X.tga", s_dump_dir,
              (unsigned long long)key, w, h, format);

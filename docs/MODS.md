@@ -23,8 +23,9 @@ mods/
   The SSX modding community's tools (for example SSXModding/SSXTools) read and write SSX 3's formats.
 - **Textures**: a texture key is the hash of the original texture's pixels. `RECOMP_TEX_DUMP=<dir>` writes every
   texture the game decodes as `<key>_<w>x<h>_f<format>.tga`, so you can find the key of the one you want to change.
-  A surface redrawn every frame is written for its first frames only: from an address's third change of pixels, each
-  less than a second after the last, nothing more is written. Two palettes of one texture are both kept. **Verified**
+  A surface redrawn every frame is written for its first 8 frames only: from an address's 9th new set of pixels, each
+  less than a second after the last, nothing more is written. Up to 8 palettes of one texture are all kept; a texture
+  first drawn at such an address within that second is missed. **Verified**
   (`tests/hdtex_dump_test.c`; before it, a 23-minute play wrote 17,794 files, 4 GB, about 15,300 of them the rider's
   shadow, the pillarbox frame and other surfaces redrawn every frame, **Observed** in the user's collect run).
   The enabled mods' packs come before the HD pack, in the same order as the files; `RECOMP_HDTEX=0` turns off only

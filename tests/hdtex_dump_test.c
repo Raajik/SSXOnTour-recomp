@@ -52,25 +52,37 @@ int main(void)
     /* A shadow: one address, new pixels every frame (30 FPS for a second). */
     for (i = 0; i < 30; i++)
         hdtex_dump(0x1000u + (uint64_t)i, 0x8228D700u, i * 33.0, px, 4, 4, 6);
-    CHECK(files() == 3);                  /* its first frames only */
+    CHECK(files() == 8);                  /* its first frames only */
 
     /* A texture drawn every frame: the same pixels, dumped once. */
     for (i = 0; i < 30; i++)
         hdtex_dump(0x2000u, 0x81000000u, i * 33.0, px, 4, 4, 6);
-    CHECK(files() == 4);
+    CHECK(files() == 9);
 
     /* A new texture in a freed address seconds later is a texture, not a redraw. */
     hdtex_dump(0x3000u, 0x81000000u, 5000.0, px, 4, 4, 6);
-    CHECK(files() == 5);
+    CHECK(files() == 10);
 
     /* The shadow address long after its last redraw: its next pixels are dumped. */
     hdtex_dump(0x4000u, 0x8228D700u, 9000.0, px, 4, 4, 6);
-    CHECK(files() == 6);
+    CHECK(files() == 11);
 
-    /* One texture drawn with two palettes in every frame: both are dumped. */
+    /* One texture drawn with four palettes in every frame: all four are dumped. */
+    for (i = 0; i < 40; i++)
+        hdtex_dump(0x5000u + (uint64_t)(i & 3), 0x82000000u, 10000.0 + i * 4.0, px, 4, 4, 6);
+    CHECK(files() == 15);
+
+    /* Two redrawn surfaces 128 KB apart (they shared a slot once): each stops. */
+    for (i = 0; i < 30; i++) {
+        hdtex_dump(0x6000u + (uint64_t)i, 0x8228D700u, 20000.0 + i * 33.0, px, 4, 4, 6);
+        hdtex_dump(0x7000u + (uint64_t)i, 0x822AD700u, 20000.0 + i * 33.0, px, 4, 4, 6);
+    }
+    CHECK(files() == 31);
+
+    /* Address 0 is an address like any other. */
     for (i = 0; i < 30; i++)
-        hdtex_dump(i & 1 ? 0x5001u : 0x5000u, 0x82000000u, i * 16.0, px, 4, 4, 6);
-    CHECK(files() == 8);
+        hdtex_dump(0x8000u + (uint64_t)i, 0, 30000.0 + i * 33.0, px, 4, 4, 6);
+    CHECK(files() == 39);
 
     {
         char cmd[300];
