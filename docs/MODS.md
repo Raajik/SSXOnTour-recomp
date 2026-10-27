@@ -46,3 +46,23 @@ through the model as a grey image: Real-ESRGAN ncnn upscales alpha softly, and f
 alpha (flat white colour), so every menu word stayed blurry. **Observed** (one font page, old and new alpha side by
 side, 2026-10-26). Dump while playing every mode you want covered; the
 pack covers only the textures in the dump. A pack is made from your copy's art: keep it to yourself.
+
+## Shop preview on highlight
+
+`tools/shop_preview_mod.py GAME_DIR MODS_DIR` makes `shop-preview` from your own `screens.viv`. On, highlighting a
+shop menu entry (Barber Shop > Hair Style: Mohawk, Caesar, ...; Clothing Shop: Boots; Gear Shop: Tricks) shows that
+entry's first item on the rider, as A does on entering it; nothing is bought or equipped, and B puts the old look
+back. The shipped game already previews inside an item list (Facial Hair, a style's colours). Off, the game plays
+as shipped. **Verified** (headless on save copies, mod on and off, 2026-10-27: Hair Style Down shows Caesar, Short
+Shaved, Dyed, B restores the mohawk; Boots shows its first boots; money unchanged; leaving and coming back shows
+the equipped look; `tests/shop_preview_mod_test.py`).
+- The game opens `screens.viv|<member>` as a loose file before the archive, so a mod file at
+  `data/fe/screens/screens.viv|data/fe/screens/ssx/fe/shops/<shop>.big` replaces that member. **Verified** (the
+  kernel log's "asset mod shop-preview replaces ...", and the patched screen ran).
+- The shop screens are EA APT: RefPack-compressed, Flash-like bytecode with a constant pool. The loader relocates
+  each code stream in order, so a patch is made in place, the same size: here the input handler's dead debug branch
+  (`extern.Debug` + CIRCLE) and its default call. A jump from the handler into another function's dead body never
+  ran. **Observed** (headless, natives traced).
+- In a menu the patch calls `FEShops.BrowseItem(0, GetEntries(child).link)` for an entry whose
+  `GetNumEntries(child).type` is 1 (an item list); B always calls `FECac.CachePolicy(kClearCache)`, as the shipped
+  game did only when leaving an item list. The tool checks each shop's bytes and leaves out one it does not know.

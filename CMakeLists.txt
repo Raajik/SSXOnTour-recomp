@@ -241,6 +241,12 @@ else()
     # The texture dump skips surfaces redrawn every frame (tests/hdtex_dump_test.c).
     add_executable(hdtex_dump_test tests/hdtex_dump_test.c src/vk/vkr_hdtex.c)
     add_test(NAME hdtex_dump_test COMMAND hdtex_dump_test)
+    # The shop-preview mod maker (tools/shop_preview_mod.py; the shop screens are checked when game/ has them).
+    find_package(Python3 COMPONENTS Interpreter)
+    if(Python3_FOUND)
+        add_test(NAME shop_preview_mod_test
+                 COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/shop_preview_mod_test.py)
+    endif()
 endif()
 
 # ── Game-specific additions ─────────────────────────────────────
