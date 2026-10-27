@@ -33,6 +33,24 @@ done
 
 echo "2/3 upscale x4 ($MODEL)"
 "$ESR/realesrgan-ncnn-vulkan" -i "$WORK/png" -o "$WORK/up" -m "$ESR/models" -n "$MODEL" -s 4 -f png > "$WORK/esr.log" 2>&1
+# Real-ESRGAN ncnn upscales alpha softly, not with the model, and a font page's
+# glyphs are only in its alpha (the colour is flat white): every menu word stayed
+# blurry. So each texture that is not opaque also has its alpha, as a grey image,
+# run through the model, and that replaces the soft one.
+mkdir -p "$WORK/a" "$WORK/aup"
+for f in "$WORK"/png/*.png; do
+    b=$(basename "$f")
+    [ "$(magick "$f" -format '%[opaque]' info:)" = True ] && continue
+    magick "$f" -alpha extract -colorspace sRGB -type TrueColor "$WORK/a/$b"
+done
+if [ -n "$(ls "$WORK/a")" ]; then
+    "$ESR/realesrgan-ncnn-vulkan" -i "$WORK/a" -o "$WORK/aup" -m "$ESR/models" -n "$MODEL" -s 4 -f png >> "$WORK/esr.log" 2>&1
+    for f in "$WORK"/aup/*.png; do
+        b=$(basename "$f")
+        magick "$WORK/up/$b" -alpha off \( "$f" -colorspace gray \) -compose CopyOpacity -composite "PNG32:$WORK/up/$b"
+    done
+    echo "   alpha through the model too: $(ls "$WORK/aup" | wc -l) textures"
+fi
 
 echo "3/3 BC7 DDS with mip chains"
 # One texture: halve with ImageMagick down to 1x1, BC7 each level, join the

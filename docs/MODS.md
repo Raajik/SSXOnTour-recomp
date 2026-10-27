@@ -41,5 +41,8 @@ Mods ship only their own work: no files from the game.
 (ncnn-vulkan, x4) on each texture, then BC7 with bc7enc (bc7enc_rdo) and a full mip chain. `MODEL` is
 `realesrgan-x4plus-anime` (default, sharpest on menus and text) or `realesrgan-x4plus` (the general model). Each
 mip level is resized one channel at a time: ImageMagick's alpha-weighted resize turned the colour of a glow texture
-with near-zero alpha black, which showed as a black block. Dump while playing every mode you want covered; the
+with near-zero alpha black, which showed as a black block. A texture that is not opaque also has its alpha run
+through the model as a grey image: Real-ESRGAN ncnn upscales alpha softly, and font pages keep their glyphs only in
+alpha (flat white colour), so every menu word stayed blurry. **Observed** (one font page, old and new alpha side by
+side, 2026-10-26). Dump while playing every mode you want covered; the
 pack covers only the textures in the dump. A pack is made from your copy's art: keep it to yourself.
