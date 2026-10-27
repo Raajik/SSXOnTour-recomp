@@ -66,3 +66,6 @@ the equipped look; `tests/shop_preview_mod_test.py`).
 - In a menu the patch calls `FEShops.BrowseItem(0, GetEntries(child).link)` for an entry whose
   `GetNumEntries(child).type` is 1 (an item list); B always calls `FECac.CachePolicy(kClearCache)`, as the shipped
   game did only when leaving an item list. The tool checks each shop's bytes and leaves out one it does not know.
+- The tool builds the mod beside the old one and swaps it in whole; a run that makes nothing (no shop matched,
+  an unreadable archive) leaves no mod, so no screen made from other game files stays live. **Verified**
+  (`tests/shop_preview_mod_test.py`, which fails on the tool before this).

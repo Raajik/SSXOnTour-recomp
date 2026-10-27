@@ -19,6 +19,25 @@ for n in (0, 1, 3, 4, 111, 112, 113, 5000):
     check(m.refpack_unpack(m.refpack_pack(raw)) == raw, 'refpack round trip %d' % n)
 ents = [('a.apt', b'x' * 300), ('a.const', b'yz')]
 check(m.big_read(m.big_write(ents)) == ents, 'BIG round trip')
+try:
+    m.big_read(m.big_write(ents)[:300])
+    check(False, 'a member past the end is refused')
+except ValueError:
+    pass
+
+# A run that makes nothing leaves no mod behind, not the one made before (screens from other game files).
+import shutil, subprocess, tempfile
+tmp = tempfile.mkdtemp()
+os.makedirs(os.path.join(tmp, 'game', os.path.dirname(m.VIV)))
+open(os.path.join(tmp, 'game', m.VIV), 'wb').write(m.big_write([('data/x.big', b'x')]))
+stale = os.path.join(tmp, 'mods', 'shop-preview')
+os.makedirs(stale)
+open(os.path.join(stale, 'mod.txt'), 'w').write('old')
+r = subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), '..', 'tools', 'shop_preview_mod.py'),
+                    os.path.join(tmp, 'game'), os.path.join(tmp, 'mods')], capture_output=True)
+check(r.returncode != 0, 'a run that makes nothing fails')
+check(os.listdir(os.path.join(tmp, 'mods')) == [], 'a failed run leaves no mod (%s)' % os.listdir(os.path.join(tmp, 'mods')))
+shutil.rmtree(tmp)
 
 viv = os.path.join(os.path.dirname(__file__), '..', 'game', m.VIV)
 if os.path.exists(viv):

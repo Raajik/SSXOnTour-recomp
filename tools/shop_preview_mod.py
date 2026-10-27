@@ -14,6 +14,7 @@ its default call, in place and the same size: the APT loader relocates each code
 out of the handler never ran. Each file's bytes are checked first; a shop that does not match is left out.
 """
 import os
+import shutil
 import struct
 import sys
 
@@ -29,6 +30,8 @@ def big_read(d):
     p, out = 16, []
     for _ in range(n):
         off, size = struct.unpack('>II', d[p:p + 8])
+        if off + size > len(d):
+            raise ValueError('member past the end of the archive')
         p += 8
         e = d.index(b'\0', p)
         out.append((d[p:e].decode('latin1'), d[off:off + size]))
@@ -235,26 +238,41 @@ def main():
     if len(sys.argv) != 3:
         sys.exit(__doc__)
     game, mods = sys.argv[1:]
-    viv = dict(big_read(open(os.path.join(game, VIV), 'rb').read()))
     out = os.path.join(mods, 'shop-preview')
-    made = 0
-    for shop in SHOPS:
-        member = 'data/fe/screens/ssx/fe/shops/%s.big' % shop
-        try:
-            data = make_shop(viv[member])
-        except (KeyError, ValueError) as e:
-            print('%s: left out (%s)' % (shop, e))
-            continue
-        path = os.path.join(out, VIV + '|' + member)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        open(path, 'wb').write(data)
-        print('%s: patched' % shop)
-        made += 1
-    if not made:
-        sys.exit('no shop screen matched: nothing written')
-    with open(os.path.join(out, 'mod.txt'), 'w') as f:
-        f.write('Shop preview on highlight\n'
-                'Highlighting a shop menu entry shows its first item on the rider. Made from your game files.\n')
+    # Made fresh next to the old one and swapped in whole; on any failure no mod is left (a stale one would serve
+    # screens made from other game files).
+    new, old = out + '.new', out + '.old'
+    for d in (new, old):
+        shutil.rmtree(d, ignore_errors=True)
+    try:
+        viv = dict(big_read(open(os.path.join(game, VIV), 'rb').read()))
+        made = 0
+        for shop in SHOPS:
+            member = 'data/fe/screens/ssx/fe/shops/%s.big' % shop
+            try:
+                data = make_shop(viv[member])
+            except (KeyError, ValueError, AssertionError, IndexError, StopIteration) as e:
+                print('%s: left out (%r)' % (shop, e))
+                continue
+            path = os.path.join(new, VIV + '|' + member)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'wb') as f:
+                f.write(data)
+            print('%s: patched' % shop)
+            made += 1
+        if not made:
+            raise ValueError('no shop screen matched')
+        with open(os.path.join(new, 'mod.txt'), 'w') as f:
+            f.write('Shop preview on highlight\n'
+                    'Highlighting a shop menu entry shows its first item on the rider. Made from your game files.\n')
+    except BaseException as e:
+        shutil.rmtree(new, ignore_errors=True)
+        shutil.rmtree(out, ignore_errors=True)
+        sys.exit('shop-preview not made, and any old one removed: %r' % e)
+    if os.path.exists(out):
+        os.rename(out, old)
+    os.rename(new, out)
+    shutil.rmtree(old, ignore_errors=True)
     print('wrote %s; turn it on in the launcher\'s Asset mods list' % out)
 
 

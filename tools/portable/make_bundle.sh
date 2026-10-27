@@ -31,7 +31,7 @@ for m in "$HERE"/mods/*/; do
     [ -d "$m" ] && { rm -rf "$DEST/mods/$(basename "$m")"; cp -rL "$m" "$DEST/mods/"; }
 done
 # Shop preview on highlight, made from these game files; off until ticked in the launcher (docs/MODS.md).
-python3 "$HERE/tools/shop_preview_mod.py" "$DEST/game" "$DEST/mods" > /dev/null || echo "shop-preview mod not made" >&2
+python3 "$HERE/tools/shop_preview_mod.py" "$DEST/game" "$DEST/mods" || echo "shop-preview mod not made" >&2
 # A folder made before keeps its load order (the mods the player ticked).
 [ -f "$HERE/mods/load-order.txt" ] && [ ! -f "$DEST/mods/load-order.txt" ] && cp "$HERE/mods/load-order.txt" "$DEST/mods/"
 cp "$HERE/keys.example.ini" "$DEST/"
