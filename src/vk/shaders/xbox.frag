@@ -355,7 +355,9 @@ void main()
              * fences, crowds) are smoothed like polygon edges. */
             float cov = clamp((col.a * 255.0 - r) / max(fwidth(col.a * 255.0), 1e-3) + 0.5, 0.0, 1.0);
             uint n = uint(cov * float(ns) + 0.5);
-            if (n == 0u)
+            /* Alpha 0 that the test rejects stays out: at ref 0 the ramp gave
+             * it half the samples, and see-through hair cards wrote depth. */
+            if (n == 0u || (a == 0.0 && (alpha_func() == 0x204u || r > 0.0)))
                 discard;
             gl_SampleMask[0] = int((1u << n) - 1u);
             out_color = col;

@@ -2223,6 +2223,18 @@ static void set_stencil(VkrContext *c, const VkrDrawState *st)
     vkCmdSetStencilReference(c->cmd, f, st->stencil_ref);
 }
 
+/* Ink lines follow depth jumps. A blended draw that writes depth and keeps
+ * any alpha above 0 (hair cards) writes depth where it is nearly see-through:
+ * soft tips and the blurred small mips seen at an angle. With lines on, alpha
+ * under 32 is cut, so the line follows what is visible. */
+static uint32_t alpha_ref(const VkrContext *c, const VkrDrawState *st)
+{
+    if (c->ink_p[3] > 0.0f && c->ink_p[2] > 0.0f && st->blend_enable && st->depth_write
+        && st->blend_src == 0x0302u && st->alpha_func == 0x0204u && st->alpha_ref < 32u)  /* SRC_ALPHA, GREATER */
+        return 32u;
+    return st->alpha_ref;
+}
+
 int vkr_draw(VkrContext *c, const VkrVertex *v, uint32_t nverts,
              const uint32_t *idx, uint32_t nidx, const VkrDrawState *st)
 {
@@ -2271,7 +2283,7 @@ int vkr_draw(VkrContext *c, const VkrVertex *v, uint32_t nverts,
                        st->keep_edges ? 1.0f : 0.0f};
         vkCmdPushConstants(c->cmd, c->layout, VK_SHADER_STAGE_VERTEX_BIT, 48, 16, sq);
     }
-    pcf[0] = st->alpha_func; pcf[1] = st->alpha_ref;
+    pcf[0] = st->alpha_func; pcf[1] = alpha_ref(c, st);
     {
         /* W-buffering: depth is the interpolated clip w in depth-buffer
          * units, scaled into 0..1 like z. */
@@ -2394,7 +2406,7 @@ int vkr_draw_vsh(VkrContext *c, const float *in, uint32_t nverts, uint32_t nin,
     }
     pcu[0] = vb / 16; pcu[1] = nin ? nin : 1; pcu[2] = po / 16; pcu[3] = co / 16;
     vkCmdPushConstants(c->cmd, c->layout, VK_SHADER_STAGE_VERTEX_BIT, 32, 16, pcu);
-    pcf[0] = st->alpha_func; pcf[1] = st->alpha_ref;
+    pcf[0] = st->alpha_func; pcf[1] = alpha_ref(c, st);
     {
         float ws = st->w_buffer ? 1.0f / c->zmax : 0.0f;
         memcpy(&pcf[2], &ws, 4);
