@@ -3,7 +3,7 @@
 Play SSX On Tour (Xbox, 2005) as a native Linux program, at up to 4K, with smooth edges and sharp textures. It is
 not an emulator: the game's own code is translated to C on your machine and built into a normal Linux program.
 
-![The same moment of a race at 480p, as on the Xbox, and at 1080p with anti-aliasing, anisotropic filtering and the upscaled textures mod](docs/images/compare-race.jpg)
+![The same moment of a race at 480p, as on the Xbox, and at 1080p with anti-aliasing, anisotropic filtering and the upscaled textures mod](docs/screenshots/compare-race.jpg)
 
 **You need your own copy of the game.** This repository contains no game code or data. Everything made from your
 copy (the translated code, the program, texture packs) stays on your machine; please don't share it.
@@ -18,19 +18,19 @@ copy (the translated code, the program, texture packs) stays on your machine; pl
 - Up to 4 controllers (any controller SDL knows), or the keyboard. Saving and loading work as on the Xbox.
 - A settings window (the launcher) for all of the above.
 
-![The rider up close: blocky at 480p, smooth at 1080p, and with ink outlines](docs/images/zoom-rider.jpg)
+![The rider up close: blocky at 480p, smooth at 1080p, and with ink outlines](docs/screenshots/zoom-rider.jpg)
 
 ### Ink & Color
 
-![A race start with Ink & Color off and on](docs/images/compare-ink.jpg)
+![A race start with Ink & Color off and on](docs/screenshots/compare-ink.jpg)
 
 ### Upscaled textures
 
-![The title logo with the original textures and with the upscaled textures mod, both at 1080p](docs/images/compare-textures.jpg)
+![The title logo with the original textures and with the upscaled textures mod, both at 1080p](docs/screenshots/compare-textures.jpg)
 
 ### The launcher
 
-<img src="docs/images/launcher.png" alt="The launcher: game files, display settings, Ink & Color, asset mods and controllers" width="420">
+<img src="docs/screenshots/launcher.png" alt="The launcher: game files, display settings, Ink & Color, asset mods and controllers" width="420">
 
 ## What works
 
